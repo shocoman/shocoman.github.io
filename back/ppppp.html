@@ -1,0 +1,108 @@
+<html>
+    <head>
+         <meta charset="UTF-8"> 
+    </head>
+    
+    <body>
+    
+        
+        
+        <p> Ciphertext in HEX: </p>
+        <p id="id"> </p>
+        <p> Ciphertext in BASE64: </p>
+        <p id="id2"> </p>
+        <p> PlainText: </p>
+        <p id="decrypt"></p>
+    
+    
+    </body>
+
+    
+    
+</html>
+
+
+
+<script type="text/javascript" src="crypto/aes.js"></script>
+<script type="text/javascript" src="crypto/mode-ctr.js"></script>
+<script type="text/javascript" src="crypto/pad-nopadding.js"></script>
+<script type="text/javascript" src="crypto/x64-core.js"></script>
+<script type="text/javascript" src="crypto/sha3.js"></script>
+<script type="text/javascript" src="crypto/sha256.js"></script>
+<script type="text/javascript" src="crypto/BigInteger.min.js"></script>
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    
+
+    aes_encrypt = function(msg, k){
+        let nonce = CryptoJS.enc.Base64.parse('ThS5WCm5hedKU8y4ygaIgg==');
+        let key = CryptoJS.enc.Base64.parse(k);
+
+        let encrypted = CryptoJS.AES.encrypt(msg, key, {
+          mode: CryptoJS.mode.CTR,
+          iv: nonce,
+          padding: CryptoJS.pad.NoPadding
+        });
+        
+        return CryptoJS.enc.Base64.stringify(nonce) + encrypted.toString();
+        
+    }
+    
+    aes_decrypt = function(raw_msg, k){
+        let nonce = CryptoJS.enc.Base64.parse(raw_msg.substring(0, 24));
+        let key = CryptoJS.enc.Base64.parse(k);
+        
+        let decrypted = CryptoJS.AES.decrypt(raw_msg.substring(24), key, {
+          mode: CryptoJS.mode.CTR,
+          iv: nonce,
+          padding: CryptoJS.pad.NoPadding
+        });
+
+        return decrypted.toString(CryptoJS.enc.Utf8);
+    }
+    
+    sha256 = function(msg){
+        return CryptoJS.enc.Base64.stringify(CryptoJS.SHA256(msg))
+    }
+    
+    pow_mod = function(b, p, m){
+      let result = bigInt(1);
+      let base = bigInt(b);
+      let power = bigInt(p);
+      let modulo = bigInt(m);
+
+      base = base.mod(modulo);
+
+
+      while (power.gt(bigInt(0))) {
+        if (power.mod(2).eq(1))
+          result = result.multiply(base).mod(modulo);
+        power = power.shiftRight(1);
+
+        base = base.multiply(base).mod(modulo);
+          
+        
+      }
+
+      return result.toString();
+    }
+    
+    get_random = function(digits){
+        digits -= 1;
+        return bigInt.randBetween('1e'+digits, '1e'+(digits+1)).toString();
+    }
+    
+
+
+    
+    
+
+
+</script>
