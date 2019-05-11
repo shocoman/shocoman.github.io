@@ -8,7 +8,7 @@ $(function(){
          
         $.ajax({
             method: 'POST',
-            url: 'http://dec.sfu-kras.ru/cabinet/rest/auth/login',
+            url: '//dec.sfu-kras.ru/cabinet/rest/auth/login',
             contentType: 'application/json',
             data: {
                 'username': 'dasda',
