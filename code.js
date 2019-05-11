@@ -5,7 +5,7 @@ $(function(){
         
         console.log('gdffd');
 
-         
+       
         $.ajax({
             method: 'POST',
             url: 'http://193.218.136.174:8080/cabinet/rest/auth/login',
