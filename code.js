@@ -5,7 +5,7 @@ $(function(){
         
         console.log('gdffd');
 
-        
+         
         $.ajax({
             method: 'POST',
             url: 'http://dec.sfu-kras.ru/cabinet/rest/auth/login',
