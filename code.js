@@ -12,8 +12,8 @@ $(function(){
             contentType: 'application/json',
             dataType: 'application/json',
             data: {
-                'username': 'vkulinenko-ki17',
-                'password': 'chocolates22',
+                'username': '',
+                'password': '',
                 'appToken': 'XO6dmVqroG'
             }
             
