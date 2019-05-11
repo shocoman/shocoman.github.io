@@ -4,23 +4,23 @@ $(function(){
     login_request = function(){
         
         console.log('gdffd');
-       
+
         
         $.ajax({
-            url: 'http://193.218.136.174:8080/cabinet/rest/auth/login',
             method: 'POST',
+            url: 'http://dec.sfu-kras.ru/cabinet/rest/auth/login',
             contentType: 'application/json',
-            dataType: 'application/json',
             data: {
-                'username': '',
-                'password': '',
+                'username': 'dasda',
+                'password': 'asdasda',
                 'appToken': 'XO6dmVqroG'
+            },
+            success: function(){
+                console.log(this.responseText);
             }
-            
-            
         }).done(function(html){
-            console.log(html);
-        })
+            console.log(html)
+        });
         
         
         
