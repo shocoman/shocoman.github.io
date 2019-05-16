@@ -3,14 +3,14 @@ const mod = (x, n) => (x % n + n) % n;
 
 function setup() {
   createCanvas(600, 600);
-  frameRate(10);
+  
 
 
 }
 
 let tiles = [];
-let table_cols = 70;
-let table_rows = 70;
+let table_cols = 150;
+let table_rows = 150;
 
 
 create_table = function(rows, cols) {
@@ -95,7 +95,8 @@ random_cells();
 function next_turn() {
 
   for (let j = 0; j < table_rows; j++) {
-    for (let i = 0; i < table_cols; i++) {      
+    for (let i = 0; i < table_cols; i++) {
+      
       let neighbours = count_neighbours(table, j, i);
 
       if (neighbours < 2)
