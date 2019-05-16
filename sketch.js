@@ -99,6 +99,7 @@ function next_turn() {
       
       let neighbours = count_neighbours(table, j, i);
 
+
       if (neighbours < 2)
         table[j][i] = ' ';
       else if (neighbours > 3)
