@@ -95,8 +95,7 @@ random_cells();
 function next_turn() {
 
   for (let j = 0; j < table_rows; j++) {
-    for (let i = 0; i < table_cols; i++) {
-      
+    for (let i = 0; i < table_cols; i++) {      
       let neighbours = count_neighbours(table, j, i);
 
       if (neighbours < 2)
