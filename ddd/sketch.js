@@ -75,7 +75,7 @@ class GameOfLife {
     pointLight(255, 255, 10, 10, 60, 100);
 	pointLight(255, 255, 10, 0, 0, 100);
     
-    
+     
         
     push();
     
