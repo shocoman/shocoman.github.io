@@ -76,10 +76,11 @@ class GameOfLife {
 	pointLight(255, 255, 10, 0, 0, 100);
     
     
-    
+        
     push();
     
-    
+    rotateX(-0.5);
+    rotateY(frameCount * 0.01);
     
     for (let i = 0; i < this.cells_x; i++) {
       push();
