@@ -65,21 +65,21 @@ class GameOfLife {
   
   
   draw() {
-    //translate(-width/8, -height/8);
+    
+    orbitControl();
+    
+    translate(-width/8, -height/8, -height/8,);
     
 
     ambientLight(60, 60, 60);
-    pointLight(255, 255, 10, 0, 0, 100);
-
+    pointLight(255, 255, 10, 10, 60, 100);
+	pointLight(255, 255, 10, 0, 0, 100);
     
-    let locX = mouseX - height / 2;
-    let locY = mouseY - width / 2;
+    
     
     push();
     
-    rotateX(-1*locY * 0.01);
-    rotateY(locX * 0.01);
-    translate(-width/6, -height/6);
+    
     
     for (let i = 0; i < this.cells_x; i++) {
       push();
@@ -97,7 +97,7 @@ class GameOfLife {
           translate(0, 0, k * this.cell_depth);
         
           if (this.field[i][j][k] == 1) {
-            fill(200,255,200);
+            fill(250,100,220);
             box(this.cell_width, this.cell_height, this.cell_depth);
           }
           
