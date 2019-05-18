@@ -95,7 +95,7 @@ class GameOfLife {
           push();
         
           translate(0, 0, k * this.cell_depth);
-        
+         
           if (this.field[i][j][k] == 1) {
             fill(250,100,220);
             box(this.cell_width, this.cell_height, this.cell_depth);
