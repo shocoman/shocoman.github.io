@@ -48,7 +48,7 @@ function setup() {
 
 
 function draw() {
-  background(111);
+  background(130);
 
   life.draw();
 
@@ -306,6 +306,10 @@ function mouseDragged() {
   let x = int(map(mouseX, 0, width, 0, life.cells_x));
   let y = int(map(mouseY, 0, height, 0, life.cells_y));
 
+  if (0 > mouseX || mouseX > width || 0 > mouseY || mouseY > height) return;
+
+  print(x, y);
+
   if (life.field[x][y] == 0) {
     life.field[x][y] = 1;
   }
@@ -314,6 +318,8 @@ function mouseDragged() {
 function doubleClicked() {
   let x = int(map(mouseX, 0, width, 0, life.cells_x));
   let y = int(map(mouseY, 0, height, 0, life.cells_y));
+
+  if (0 > mouseX || mouseX > width || 0 > mouseY || mouseY > height) return;
 
   if (life.field[x][y] == 0) {
     life.field[x][y] = 1;
