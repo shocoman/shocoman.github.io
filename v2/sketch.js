@@ -308,8 +308,6 @@ function mouseDragged() {
 
   if (0 > mouseX || mouseX > width || 0 > mouseY || mouseY > height) return;
 
-  print(x, y);
-
   if (life.field[x][y] == 0) { 
     life.field[x][y] = 1;
   }
