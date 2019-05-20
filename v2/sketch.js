@@ -15,6 +15,7 @@ function setup() {
   life = new GameOfLife();
   life.init();
   
+  
   hamster = new Hamster();
 
   createElement('br'); 
@@ -73,7 +74,7 @@ function draw() {
 
 class Hamster {
   constructor() {
-    this.img = loadImage('/chibi.png');
+    this.img = loadImage('https://shocoman.github.io/v2/chibi.png');
 
     this.pos = createVector(0, 400);
     this.vel = createVector(0, 0);
@@ -304,7 +305,7 @@ function mouseDragged() {
   let x = int(map(mouseX, 0, width, 0, life.cells_x));
   let y = int(map(mouseY, 0, height, 0, life.cells_y));
 
-  if (life.field[x][y] == 0) { 
+  if (life.field[x][y] == 0) {
     life.field[x][y] = 1;
   }
 }
