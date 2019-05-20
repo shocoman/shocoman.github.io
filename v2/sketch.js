@@ -314,7 +314,7 @@ function doubleClicked() {
   let x = int(map(mouseX, 0, width, 0, life.cells_x));
   let y = int(map(mouseY, 0, height, 0, life.cells_y));
 
-  if (life.field[x][y] == 0) {
+  if (life.field[x][y] == 0) { 
     life.field[x][y] = 1;
   } else {
     life.field[x][y] = 0;
