@@ -15,7 +15,7 @@ function setup() {
   });
 
 
-  tf.loadLayersModel('model.json').then(model => {
+  tf.loadLayersModel('/model.json').then(model => {
       ready = true;
       mymodel = model;
       number = '';
