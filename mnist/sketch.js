@@ -167,7 +167,7 @@ function tensorThing(){
 
     tf.tidy(() => {
 
-      const example = tf.tensor3d([grid.cells], [1,28,28]);
+      const example = tf.tensor3d([grid.cells], [1,28,28,1]);
       const prediction = mymodel.predict(example);
 
       const arr = Array.from(prediction.dataSync());
