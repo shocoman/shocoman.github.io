@@ -1,5 +1,5 @@
 let grid;
-let number = '';
+let number = 'Wait';
 ready = false;
 let mymodel;
 
@@ -19,6 +19,7 @@ function setup() {
   tf.loadLayersModel('model.json').then(model => {
       ready = true;
       mymodel = model;
+      number = '';
   } );
 }
 
@@ -28,10 +29,17 @@ function draw() {
 
   grid.draw();
 
- 
+
+  stroke(0);
+  line(1, 1, width-1, 1);
+  line(1, 1, 1, height-1);
+  line(1, height-1, width-1, height-1);
+  line(width-1, 1, width-1, height-1);
+
   fill(70,15,200);
   textSize(64);
-   text(number, width - 64, 64 );
+  text(number, 32, 64 );
+  print(width - 64 * (number.length-1));
 }
 
 
@@ -61,9 +69,12 @@ class Grid {
 
   draw() {
 
+
+
     for (let w = 0; w < this.width; w++) {
       for (let h = 0; h < this.height; h++) {
         fill((1 - this.cells[h][w]) * 255);
+        stroke((1 - this.cells[h][w]) * 255);
         rect(w * this.rectSize.w, h * this.rectSize.h, this.rectSize.w, this.rectSize.h);
       }
     }
@@ -112,7 +123,7 @@ class Grid {
         }
         else{
 
-          this.cells[i][j] += level/5;
+          this.cells[i][j] += level/4;
           if (this.cells[i][j] > 1){
             this.cells[i][j] = 1;
           }          
@@ -131,10 +142,8 @@ class Grid {
 
 function mousePressed() {
   
-
-
   if (mouseButton === LEFT) {
-    grid.putCell(0.5)
+    grid.putCell(0.7);
   } else if (mouseButton === RIGHT) {
     grid.putCell(0)
   }
