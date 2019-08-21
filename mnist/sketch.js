@@ -9,7 +9,6 @@ function setup() {
   
   
   clearButton = createButton('Clear canvas');
-  //cleanButton.position(19, 19);
   clearButton.mousePressed(_ => {
     number = '';
     grid.clear();
@@ -39,7 +38,6 @@ function draw() {
   fill(70,15,200);
   textSize(64);
   text(number, 32, 64 );
-  print(width - 64 * (number.length-1));
 }
 
 
@@ -89,15 +87,6 @@ class Grid {
       }
     }
 
-  }
-
-  print(){
-        for (let w = 0; w < this.width; w++) {
-      
-        console.log(this.cells[w].join(" ") + " " + (frameCount % 10));
-        
-      
-    }
   }
 
 
@@ -167,15 +156,6 @@ function mouseReleased(){
       }
 }
 
-
-
-function keyPressed(){
-  if (keyCode === ENTER){
-   // print(grid.cells[0]);
-    //tensorThing();
-
-  }
-}
 
 
 
