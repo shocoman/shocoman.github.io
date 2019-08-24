@@ -185,6 +185,8 @@ function tensorThing(){
       print(arr);
 
       number = num;
+      
+      prediction.argMax().print();
   })
     console.log('numTensors: ' + tf.memory().numTensors);
   }
