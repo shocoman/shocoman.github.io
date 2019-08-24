@@ -44,10 +44,6 @@ function draw() {
   }
 
   
-
- 
-
-    
       for (let i = 0; i < drawingRays.length; i++) {
 
         push();
@@ -68,10 +64,6 @@ function draw() {
     }
 
   }
-
-
-
-
 
 
   class Ray {
