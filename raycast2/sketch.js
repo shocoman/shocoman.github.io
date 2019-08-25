@@ -3,17 +3,17 @@ let lines = [];
 let intersectPoints = [];
 let player;
 
-let TURN_SPEED = Math.PI/64;
+let TURN_SPEED = Math.PI / 64;
 let WALK_SPEED = 1;
 
 function setup() {
 	createCanvas(600, 400);
 
 	let startAngle = 0;
-	player = new Player(width * 1/ 3 - 70, height / 2 - 70, startAngle);
+	player = new Player((width * 1) / 3 - 70, height / 2 - 70, startAngle);
 
-	let fov = PI/3;
-	for (let angle = -fov/2; angle <= fov/2; angle += fov / 50) {
+	let fov = PI / 3;
+	for (let angle = -fov / 2; angle <= fov / 2; angle += fov / 50) {
 		ray = new Ray(player, startAngle + angle);
 		rays.push(ray);
 	}
@@ -21,13 +21,25 @@ function setup() {
 	drawBorders();
 }
 
+function drawFloor() {
+	stroke(80, 70, 40);
+	//rect(0, height / 2, width, height / 2);
+
+	let color1 = color('#4d3319');
+	let color2 = color('#bf8040');
+
+	for (let i = height/2; i < height; i++){
+		stroke(lerpColor(color1, color2, (i-height/2)/(height/2)))
+		line(0, i, width, i);
+	}
+}
+
 function draw() {
 	background(220);
 	push();
-	fill(50,100,250);
-	rect(0,0, width, height/2);
-	fill(80,70,40);
-	rect(0,height/2, width, height/2);
+	fill(50, 100, 250);
+	rect(0, 0, width, height / 2);
+	drawFloor();
 	pop();
 
 	intersectPoints = [];
@@ -36,7 +48,7 @@ function draw() {
 
 	rays.forEach(ray => {
 		ray.update();
-		
+
 		ray.draw();
 		let rayInters = [];
 
@@ -44,11 +56,11 @@ function draw() {
 			ln.draw();
 			let intersectPos = ray.doesIntersects(ln);
 			if (intersectPos != false) {
-
-				let myDist = function(rx, ry, ix, iy){
+				
+				let myDist = function(rx, ry, ix, iy) {
 					let cs = cos(player.dir.angleBetween(ray.dir));
-					return dist(rx,ry,ix,iy) * cs;
-				}
+					return dist(rx, ry, ix, iy) * cs;
+				};
 
 				rayInters.push(myDist(ray.startPoint.x, ray.startPoint.y, intersectPos.x, intersectPos.y));
 				//line(ray.startPoint.x, ray.startPoint.y, intersectPos.x, intersectPos.y);
@@ -60,20 +72,18 @@ function draw() {
 
 	// draw columns
 	for (let i = 0; i < intersectPoints.length; i++) {
+		let scaleFactor = 1500;
+		let wallHeight = (1 / intersectPoints[i]) * scaleFactor;
 
-		let dist = 1/intersectPoints[i];
-		dist *= 1500;
-
-		let wallHeight = constrain(dist, 1, height/2-1);
+		wallHeight = constrain(wallHeight, 1, height / 2 - 1);
 		push();
+
 		strokeCap(SQUARE);
 		strokeWeight(15);
-		
-		stroke(map(wallHeight, 1, height/2-1, 30, 220));
-		
-		if (wallHeight < height/2){
-			line((width / intersectPoints.length) * i, height/2 -wallHeight, (width / intersectPoints.length) * i, height/2 + wallHeight);
-		
+		stroke(map(wallHeight, 1, height / 2 - 1, 30, 220));
+
+		if (wallHeight < height / 2) {
+			line((width / intersectPoints.length) * i, height / 2 - wallHeight, (width / intersectPoints.length) * i, height / 2 + wallHeight);
 		}
 		pop();
 	}
@@ -168,7 +178,7 @@ class Ray {
 
 	draw() {
 		push();
-		stroke(100,100,100);
+		stroke(100, 100, 100);
 
 		line(this.startPoint.x, this.startPoint.y, this.endPoint.x, this.endPoint.y);
 		//ellipse(this.endPoint.x, this.endPoint.y, 2);
@@ -184,7 +194,7 @@ class Line {
 
 	draw() {
 		push();
-		stroke(200,100,100);
+		stroke(200, 100, 100);
 		line(this.startPoint.x, this.startPoint.y, this.endPoint.x, this.endPoint.y);
 		pop();
 	}
