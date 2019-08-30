@@ -7,7 +7,17 @@ let tilesCols;
 
 let mouseXdelta = 0;
 
+let wallTexture1;
+let wallPixels;
+
+function preload() {
+	wallTexture1 = loadImage('image.bmp');
+}
+
 function setup() {
+	wallTexture1.loadPixels();
+	wallPixels = wallTexture1.pixels;
+
 	createCanvas(600, 400);
 	tilesRows = height / tileSize;
 	tilesCols = width / tileSize;
@@ -24,12 +34,10 @@ function setup() {
 	// player = new Player(316.3, 154.9);
 	player = new Player(316.3, 208.2);
 
-	pointerLocking();
-
-	print(color(0, 200, 100));
+	lockPointer();
 }
 
-function pointerLocking() {
+function lockPointer() {
 	canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
 
 	window.addEventListener('click', () => {
@@ -41,8 +49,26 @@ function mouseMoved(e) {
 	mouseXdelta = e.movementX;
 }
 
+function drawFloor() {
+	stroke(80, 70, 40);
+	//rect(0, height / 2, width, height / 2);
+
+	let color1 = color('#4d3319');
+	let color2 = color('#bf8040');
+
+	for (let i = height/2; i < height; i++){
+		stroke(lerpColor(color1, color2, (i-height/2)/(height/2)))
+		line(0, i, width, i);
+	}
+}
+
 function draw() {
 	background(220);
+
+	fill(50, 100, 250);
+	rect(0, 0, width, height / 2);
+	drawFloor();
+
 
 	tiles.forEach(tile => {
 		tile.draw();
@@ -278,7 +304,7 @@ class Player {
 		// otherDir.rotate(this.fov);
 		// line(this.pos.x, this.pos.y, this.pos.x + otherDir.x, this.pos.y + otherDir.y);
 
-		for (let i = -this.fov / 2; i <= this.fov / 2; i += this.fov / 200) {
+		for (let i = -this.fov / 2; i <= this.fov / 2; i += this.fov / 100) {
 			let ray = this.dir.copy();
 			ray.rotate(i);
 			//line(this.pos.x, this.pos.y, this.pos.x + ray.x, this.pos.y + ray.y);
@@ -295,7 +321,8 @@ class Player {
 			//line(((i + this.fov / 2) * width) / this.fov, height / 2 - wallHeight, ((i + this.fov / 2) * width) / this.fov, height / 2 + wallHeight);
 
 			let currentTile = tiles[floor(intersectCoords.tileLoc.x) + floor(intersectCoords.tileLoc.y) * tilesCols];
-			currentTile.drawLine(((i + this.fov / 2) * width) / this.fov, height / 2 - wallHeight, ((i + this.fov / 2) * width) / this.fov, height / 2 + wallHeight, intersectCoords, this.pos.x, this.pos.y);
+			let currentTileX = ((i + this.fov / 2) * width) / this.fov;
+			currentTile.drawLine(currentTileX, wallHeight, intersectCoords, this.pos.x, this.pos.y);
 		}
 
 		// let ray = this.dir.copy().setMag(400);
@@ -390,7 +417,7 @@ class Tile {
 		this.active = false;
 	}
 
-	drawLine(x0, y0, x1, y1, touchCoords, px, py) {
+	drawLine(x, wallHeight, touchCoords, px, py) {
 		let getIntersectionSide = function(tileX, tileY, touchX, touchY) {
 			let vecCrossMult = function(v1, v2) {
 				return v1.x * v2.y - v1.y * v2.x;
@@ -421,26 +448,46 @@ class Tile {
 		let side = getIntersectionSide(touchCoords.tileLoc.x, touchCoords.tileLoc.y, touchCoords.x, touchCoords.y);
 
 		let alpha = 255;
+		strokeCap(SQUARE);
+		strokeWeight(10);
 		if (side == 'bottom') {
-			alpha = map(abs(touchCoords.x * this.s - this.x) / this.s, 0, 1, 0, 255);
+			//alpha = map(abs(touchCoords.x * this.s - this.x) / this.s, 0, 1, 0, 255);
+
+			drawColumn(wallTexture1, abs(touchCoords.x * this.s - this.x) / this.s, x, wallHeight);
 		} else if (side == 'top') {
-			alpha = map(abs(touchCoords.x * this.s - this.x) / this.s, 0, 1, 255, 0);
+			//alpha = map(abs(touchCoords.x * this.s - this.x) / this.s, 0, 1, 255, 0);
+			drawColumn(wallTexture1, 1 - abs(touchCoords.x * this.s - this.x) / this.s, x, wallHeight);
 		} else if (side == 'left') {
-			alpha = map(abs(touchCoords.y * this.s - this.y) / this.s, 0, 1, 0, 255);
+			//alpha = map(abs(touchCoords.y * this.s - this.y) / this.s, 0, 1, 0, 255);
+			drawColumn(wallTexture1, abs(touchCoords.y * this.s - this.y) / this.s, x, wallHeight);
 		} else if (side == 'right') {
-			alpha = map(abs(touchCoords.y * this.s - this.y) / this.s, 0, 1, 255, 0);
+			//alpha = map(abs(touchCoords.y * this.s - this.y) / this.s, 0, 1, 255, 0);
+			drawColumn(wallTexture1, 1 - abs(touchCoords.y * this.s - this.y) / this.s, x, wallHeight);
 		}
 
-		strokeCap(SQUARE);
-		stroke(color(this.color.levels[0], this.color.levels[1], this.color.levels[2], alpha));
-		line(x0, y0, x1, y1);
+		//stroke(color(this.color.levels[0], this.color.levels[1], this.color.levels[2], alpha));
+		//line(x, height / 2 - wallHeight, x, height / 2 + wallHeight);
 
 		if (mouseIsPressed) {
-			//print(abs(coords.x * this.s - this.x) / this.s, abs(coords.y * this.s - this.y) / this.s);
-			// print(getIntersectionSide2(touchCoords.tileLoc.x, touchCoords.tileLoc.y, px, py));
-			//getIntersectionSide2(touchCoords.tileLoc.x, touchCoords.tileLoc.y, px, py);
-
 			print(side);
 		}
+	}
+}
+
+function drawColumn(img, ncolFrom, ncolTo, finalHeight) {
+	let acc = 0;
+	let i = 0;
+	
+	for (let p = 0; p < img.height; p++) {
+		let ncol = floor(ncolFrom * img.width);
+		ncol -= ncol % 4;
+		let nrow = p * img.width * 4;
+		stroke(img.pixels[4 * ncol + nrow], img.pixels[4 * ncol + 1 + nrow], img.pixels[4 * ncol + 2 + nrow], 255);
+
+		acc += finalHeight / img.height;
+
+		line(ncolTo, height / 2 - finalHeight / 2 + i, ncolTo, height / 2 - finalHeight / 2 + i + ceil(acc));
+		i += ceil(acc);
+		acc -= ceil(acc);
 	}
 }
