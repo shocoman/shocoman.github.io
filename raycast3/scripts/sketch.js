@@ -7,13 +7,16 @@ let tilesCols;
 
 let mouseXdelta = 0;
 
-
 let texturesSheet;
 
 let textures = [];
 
+let things = [];
+let starSprite;
+
 function preload() {
 	texturesSheet = loadImage('spritesheet.png');
+	starSprite = loadImage('starSprite.png');
 }
 
 function setup() {
@@ -24,15 +27,13 @@ function setup() {
 		textures.push(newTexture);
 	}
 
-
 	createCanvas(600, 400);
 	tilesRows = height / tileSize;
 	tilesCols = width / tileSize;
 
-
 	for (let i = 0; i < tilesRows; i++) {
 		for (let j = 0; j < tilesCols; j++) {
-			tiles.push(new Tile(tileSize * j, tileSize * i, tileSize, 'empty', textures[ floor(random(6)) ]));
+			tiles.push(new Tile(tileSize * j, tileSize * i, tileSize, 'empty', textures[floor(random(6))]));
 		}
 	}
 
@@ -41,11 +42,13 @@ function setup() {
 	player = new Player(316.3, 208.2);
 
 	lockPointer();
+
+	things.push(new Thing(width / 2-30, height / 2 - 50, starSprite));
+	things.push(new Thing(width / 2+30, height / 2 - 50, starSprite));
 }
 
 function draw() {
 	background(220);
-
 
 	drawSkyAndFloor();
 
@@ -57,6 +60,45 @@ function draw() {
 	player.draw();
 
 	mouseXdelta = 0;
+
+	//print(thing.isVisible());
+
+	things.forEach(thing => {
+		thing.draw();
+	});
+
+
+	//print(player.pos.x, player.pos.y, thing.x, thing.y);
+}
+
+class Thing {
+	constructor(x, y, t) {
+		this.x = x;
+		this.y = y;
+		this.texture = t;
+	}
+
+	isVisible(vecToThing) {
+		if (vecToThing.angleBetween(player.dir) < player.fov) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	draw() {
+		let vecToThing = createVector(this.x - player.pos.x, this.y - player.pos.y);
+		let vecL = vecToThing.copy().rotate(-player.fov / 2);
+		let vecR = vecToThing.copy().rotate(player.fov / 2);
+		let x;
+		if (this.isVisible(vecToThing) && vecCrossMult(vecL, player.dir) * vecCrossMult(vecL, vecR) >= 0) {
+			x = map(vecL.angleBetween(player.dir), 0, player.fov, width, 0);
+			let d = dist(this.x, this.y, player.pos.x, player.pos.y);
+
+			let size = 5000 / d;
+			image(this.texture, x, height / 2  - size/2, size, size);
+		}
+	}
 }
 
 function createRoom() {
@@ -77,7 +119,6 @@ function createRoom() {
 	tiles[tilesCols * 7 + 4 + 8].tileType = 'empty';
 }
 
-
 function lockPointer() {
 	canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
 
@@ -91,7 +132,6 @@ function mouseMoved(e) {
 }
 
 function drawSkyAndFloor() {
-
 	fill(50, 100, 250);
 	rect(0, 0, width, height / 2);
 

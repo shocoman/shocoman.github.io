@@ -14,11 +14,11 @@ function quadrant(angle) {
 	}
 }
 
-function getIntersectionSide(x0, y0, direction) {
-	let vecCrossMult = function(v1, v2) {
-		return v1.x * v2.y - v1.y * v2.x;
-	};
+function vecCrossMult(v1, v2) {
+	return v1.x * v2.y - v1.y * v2.x;
+}
 
+function getIntersectionSide(x0, y0, direction) {
 	let curTile = tiles[floor(x0) + floor(y0) * tilesCols];
 
 	let x = x0 * tileSize;
@@ -38,7 +38,6 @@ function getIntersectionSide(x0, y0, direction) {
 		return 'left';
 	}
 }
-
 
 function wolfDda(x0, y0, directionVector) {
 	let maxDist = 20;
