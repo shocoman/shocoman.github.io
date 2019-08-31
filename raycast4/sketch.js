@@ -304,7 +304,7 @@ class Player {
 		// otherDir.rotate(this.fov);
 		// line(this.pos.x, this.pos.y, this.pos.x + otherDir.x, this.pos.y + otherDir.y);
 
-		for (let i = -this.fov / 2; i <= this.fov / 2; i += this.fov / 100) {
+		for (let i = -this.fov / 2; i <= this.fov / 2; i += this.fov / 200) {
 			let ray = this.dir.copy();
 			ray.rotate(i);
 			//line(this.pos.x, this.pos.y, this.pos.x + ray.x, this.pos.y + ray.y);
@@ -384,10 +384,6 @@ class Player {
 	}
 
 	draw() {
-		fill(0, 255, 0);
-		strokeWeight(3);
-		circle(this.pos.x, this.pos.y, 10);
-
 		this.castRays();
 	}
 }
