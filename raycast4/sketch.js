@@ -451,22 +451,17 @@ class Tile {
 		strokeCap(SQUARE);
 		strokeWeight(10);
 		if (side == 'bottom') {
-			//alpha = map(abs(touchCoords.x * this.s - this.x) / this.s, 0, 1, 0, 255);
-
-			drawColumn(wallTexture1, abs(touchCoords.x * this.s - this.x) / this.s, x, wallHeight);
+			alpha = map(abs(touchCoords.x * this.s - this.x) / this.s, 0, 1, 0, 255);
 		} else if (side == 'top') {
-			//alpha = map(abs(touchCoords.x * this.s - this.x) / this.s, 0, 1, 255, 0);
-			drawColumn(wallTexture1, 1 - abs(touchCoords.x * this.s - this.x) / this.s, x, wallHeight);
+			alpha = map(abs(touchCoords.x * this.s - this.x) / this.s, 0, 1, 255, 0);
 		} else if (side == 'left') {
-			//alpha = map(abs(touchCoords.y * this.s - this.y) / this.s, 0, 1, 0, 255);
-			drawColumn(wallTexture1, abs(touchCoords.y * this.s - this.y) / this.s, x, wallHeight);
+			alpha = map(abs(touchCoords.y * this.s - this.y) / this.s, 0, 1, 0, 255);
 		} else if (side == 'right') {
-			//alpha = map(abs(touchCoords.y * this.s - this.y) / this.s, 0, 1, 255, 0);
-			drawColumn(wallTexture1, 1 - abs(touchCoords.y * this.s - this.y) / this.s, x, wallHeight);
+			alpha = map(abs(touchCoords.y * this.s - this.y) / this.s, 0, 1, 255, 0);
 		}
 
-		//stroke(color(this.color.levels[0], this.color.levels[1], this.color.levels[2], alpha));
-		//line(x, height / 2 - wallHeight, x, height / 2 + wallHeight);
+		stroke(color(this.color.levels[0], this.color.levels[1], this.color.levels[2], alpha));
+		line(x, height / 2 - wallHeight, x, height / 2 + wallHeight);
 
 		if (mouseIsPressed) {
 			print(side);
