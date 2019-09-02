@@ -28,8 +28,7 @@ class Player {
 
 	update() {
 		this.controls();
-
-		//this.dir.rotate(this.rotateSpeed * 1);
+		this.castRays();
 	}
 
 	controls() {
@@ -58,11 +57,4 @@ class Player {
 		this.dir.rotate(this.rotateSpeed * mouseXdelta * 0.1);
 	}
 
-	draw() {
-		fill(0, 255, 0);
-		//strokeWeight(3);
-		//circle(this.pos.x, this.pos.y, 10);
-
-		this.castRays();
-	}
 }
