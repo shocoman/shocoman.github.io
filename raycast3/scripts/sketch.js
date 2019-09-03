@@ -36,15 +36,12 @@ function setup() {
 	createCanvas(600, 400);
 	tilesRows = height / tileSize;
 	tilesCols = width / tileSize;
+	frameRate(30);
 
 	initTextures(tilesRows, tilesCols);
-
 	createRoom();
-
 	player = new Player(316.3, 208.2);
-
 	lockPointer();
-
 	things.push(new Thing(width / 2 - 30, height / 2 - 50, starSprite));
 	things.push(new Thing(width / 2 + 30, height / 2 - 50, starSprite));
 }
