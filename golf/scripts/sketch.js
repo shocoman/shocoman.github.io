@@ -1,129 +1,93 @@
-let player;
-let mouseXdelta = 0;
+let ball;
 
-let tiles = [];
-let tileSize = 25;
-let tilesRows;
-let tilesCols;
-
-let texturesSheet;
-let textures = [];
-
-let things = [];
-let starSprite;
-
-function preload() {
-	texturesSheet = loadImage('spritesheet.png');
-	starSprite = loadImage('starSprite.png');
-}
-
-function initTextures(nRows, nCols) {
-	for (let i = 0; i < 6; i++) {
-		let newTexture = createImage(64, 64);
-		newTexture.copy(texturesSheet, 0, 0 + 64 * i, 64, 64, 0, 0, 64, 64);
-		newTexture.loadPixels();
-		textures.push(newTexture);
-	}
-
-	for (let i = 0; i < nRows; i++) {
-		for (let j = 0; j < nCols; j++) {
-			tiles.push(new Tile(tileSize * j, tileSize * i, tileSize, 'empty', textures[floor(random(6))]));
-		}
-	}
-}
+let lineSegment;
 
 function setup() {
-	createCanvas(600, 400);
-	tilesRows = height / tileSize;
-	tilesCols = width / tileSize;
-	frameRate(30);
+	createCanvas(600, 600);
 
-	initTextures(tilesRows, tilesCols);
-	createRoom();
-	player = new Player(316.3, 208.2);
-	lockPointer();
-	things.push(new Thing(width / 2 - 30, height / 2 - 50, starSprite));
-	things.push(new Thing(width / 2 + 30, height / 2 - 50, starSprite));
+	ball = new Ball(width/2, height/4);
+	lineSegment = new LineSegment(100,500,500,300);
 }
 
 function draw() {
 	background(220);
-	drawSkyAndFloor();
-	player.update();
-	mouseXdelta = 0;
-	things.forEach(thing => {
-		thing.draw();
-	});
+
+	ball.update(lineSegment);
+	ball.draw();
+
+	lineSegment.draw();
 }
 
-class Thing {
-	constructor(x, y, t) {
-		this.x = x;
-		this.y = y;
-		this.texture = t;
+function vectorProject(vec1, vec2){
+	let projection = vec1.copy();
+	return projection.mult(vec1.dot(vec2) / (vec1.magSq()));
+}
+
+class Ball {
+	constructor(x,y){
+		this.pos = createVector(x,y);
+		this.vel = createVector(0,0);
+		this.acc = createVector(0,0.1);
+
+		this.r = 20;
 	}
 
-	isVisible(vecToThing) {
-		if (vecToThing.angleBetween(player.dir) < player.fov) {
-			return true;
-		} else {
-			return false;
+	update(lineSegment){
+		let old_pos = this.pos.copy();
+
+		this.vel.add(this.acc);
+		this.pos.add(this.vel);
+
+		if (this.pos.y + this.r > height) {
+			this.pos.y = height - this.r;
+			this.vel.y *= -1;
 		}
-	}
-
-	draw() {
-		let vecToThing = createVector(this.x - player.pos.x, this.y - player.pos.y);
-		let vecL = vecToThing.copy().rotate(-player.fov / 2);
-		let vecR = vecToThing.copy().rotate(player.fov / 2);
-		if (this.isVisible(vecToThing) && vecCrossMult(vecL, player.dir) * vecCrossMult(vecL, vecR) >= 0) {
-			let col = map(vecL.angleBetween(player.dir), 0, player.fov, width, 0);
-			let d = dist(this.x, this.y, player.pos.x, player.pos.y);
-
-			let size = 5000 / d;
-			image(this.texture, col, height / 2 - size / 2, size, size);
+		if (this.pos.x + this.r > width) {
+			this.pos.x = width - this.r;
+			this.vel.x *= -1;
 		}
+		if (this.pos.x - this.r < 0) {
+			this.pos.x = this.r;
+			this.vel.x *= -1;
+		}
+
+
+		let vecToBall = p5.Vector.sub(this.pos, lineSegment.p1);
+		let vecToEnd = p5.Vector.sub(lineSegment.p2, lineSegment.p1);
+
+		let projectVector = vectorProject(vecToEnd, vecToBall);
+		ellipse(lineSegment.p1.x + projectVector.x, lineSegment.p1.y + projectVector.y, 20);
+		//print(projectVector.mag());
+
+		let intersectPoint = createVector(lineSegment.p1.x + projectVector.x,
+											lineSegment.p1.y + projectVector.y);
+
+		//print(p5.Vector.cross(vecToEnd, vecToBall));
+
+		if (p5.Vector.dist(intersectPoint, this.pos) <= this.r){
+
+			let angle = this.vel.angleBetween(p5.Vector.sub(this.pos, intersectPoint));
+
+			
+			this.vel.rotate(2*angle);
+			this.pos = old_pos.copy();
+		}
+
+	}
+
+	draw(){
+		ellipse(this.pos.x, this.pos.y, this.r*2);
 	}
 }
 
-function createRoom() {
-	for (let i = 0; i < 10; i++) {
-		tiles[tilesCols * 3 + i + 8].tileType = 'wall';
-		tiles[tilesCols * 12 + i + 8].tileType = 'wall';
-		tiles[tilesCols * (3 + i) + 7].tileType = 'wall';
-		tiles[tilesCols * (3 + i) + 18].tileType = 'wall';
-
-		tiles[tilesCols * 2 + i + 8].tileType = 'wall';
-		tiles[tilesCols * 13 + i + 8].tileType = 'wall';
-		tiles[tilesCols * (3 + i) + 6].tileType = 'wall';
-		tiles[tilesCols * (3 + i) + 19].tileType = 'wall';
-
-		tiles[tilesCols * 7 + i + 8].tileType = 'wall';
+class LineSegment{
+	constructor(x1,y1,x2,y2){
+		this.p1 = createVector(x1,y1);
+		this.p2 = createVector(x2,y2);
 	}
 
-	tiles[tilesCols * 7 + 4 + 8].tileType = 'empty';
-}
-
-function lockPointer() {
-	canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
-
-	window.addEventListener('click', () => {
-		canvas.requestPointerLock();
-	});
-}
-
-function mouseMoved(e) {
-	mouseXdelta = e.movementX;
-}
-
-function drawSkyAndFloor() {
-	fill(50, 100, 250);
-	rect(0, 0, width, height / 2);
-
-	stroke(80, 70, 40);
-	let color1 = color('#4d3319');
-	let color2 = color('#bf8040');
-	for (let i = height / 2; i < height; i++) {
-		stroke(lerpColor(color1, color2, (i - height / 2) / (height / 2)));
-		line(0, i, width, i);
+	draw(){
+		line(this.p1.x, this.p1.y, this.p2.x, this.p2.y);
 	}
+
 }
