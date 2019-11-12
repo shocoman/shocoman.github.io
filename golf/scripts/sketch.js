@@ -42,8 +42,8 @@ function setup() {
 	createRoom();
 	player = new Player(316.3, 208.2);
 	lockPointer();
-	// things.push(new Thing(width / 2 - 30, height / 2 - 50, starSprite));
-	// things.push(new Thing(width / 2 + 30, height / 2 - 50, starSprite));
+	things.push(new Thing(width / 2 - 30, height / 2 - 50, starSprite));
+	things.push(new Thing(width / 2 + 30, height / 2 - 50, starSprite));
 }
 
 function draw() {
@@ -52,17 +52,15 @@ function draw() {
 	player.update();
 	mouseXdelta = 0;
 	things.forEach(thing => {
-		thing.update();
 		thing.draw();
 	});
 }
 
 class Thing {
-	constructor(x, y, t, dir) {
-		this.pos = createVector(x,y);
-		this.dir = dir;
+	constructor(x, y, t) {
+		this.x = x;
+		this.y = y;
 		this.texture = t;
-		this.speed = 5
 	}
 
 	isVisible(vecToThing) {
@@ -73,17 +71,13 @@ class Thing {
 		}
 	}
 
-	update() {
-		this.pos.add(p5.Vector.mult(this.dir, this.speed));
-	}
-
 	draw() {
-		let vecToThing = p5.Vector.sub(this.pos, player.pos);
+		let vecToThing = createVector(this.x - player.pos.x, this.y - player.pos.y);
 		let vecL = vecToThing.copy().rotate(-player.fov / 2);
 		let vecR = vecToThing.copy().rotate(player.fov / 2);
 		if (this.isVisible(vecToThing) && vecCrossMult(vecL, player.dir) * vecCrossMult(vecL, vecR) >= 0) {
 			let col = map(vecL.angleBetween(player.dir), 0, player.fov, width, 0);
-			let d = dist(this.pos.x, this.pos.y, player.pos.x, player.pos.y);
+			let d = dist(this.x, this.y, player.pos.x, player.pos.y);
 
 			let size = 5000 / d;
 			image(this.texture, col, height / 2 - size / 2, size, size);
@@ -132,8 +126,4 @@ function drawSkyAndFloor() {
 		stroke(lerpColor(color1, color2, (i - height / 2) / (height / 2)));
 		line(0, i, width, i);
 	}
-}
-
-function mousePressed(){
-	things.push(new Thing(player.pos.x, player.pos.y - 5, starSprite, player.dir));
 }

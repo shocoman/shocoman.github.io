@@ -7,7 +7,7 @@ let func;
 
 let x1 = -10;
 let x2 = -x1;
-let yMin = -10;
+let yMin = -300;
 let yMax = -yMin;
 let step = 0.1;
 
@@ -25,7 +25,7 @@ function setup() {
 	createCanvas(640, 480);
 
 	createElement('label', 'f(x) = ');
-	input = createInput('(x + 1) ** 2 + 2 * x + 1');
+	input = createInput('x**3 + x**2 - 3');
 	input.size(200);
 	func = x => eval(input.value());
 	createElement('br');
@@ -91,7 +91,7 @@ function drawAxis() {
 	let y = map(0, yMin, yMax, height, 0);
 	line(0, y, width, y);
 
-	for (let yy = yMin; yy <= yMax; yy += 1) {
+	for (let yy = yMin; yy <= yMax; yy += 20) {
 		y = map(yy, yMin, yMax, height, 0);
 		line(width / 2 - 10, y, width / 2 + 10, y);
 
@@ -131,8 +131,10 @@ function drawChart() {
 
 	strokeWeight(15);
 	stroke(0, 255, 0);
-	let minX = map(fibMethod(func), x1, x2, 0, width);
-	let minY = map(func(fibMethod(func)), x1, x2, height, 0);
+
+	let x0 = fibMethod(func);
+	let minX = map(x0, x1, x2, 0, width);
+	let minY = map(func(x0), yMin, yMax, height, 0);
 	point(minX, minY);
 }
 
@@ -151,12 +153,12 @@ function fib(n) {
 // OX: ------ a ------ y ------ . ------ z ------ b ------
 function fibMethod(myFunc) {
 	steps = [];
-	let a = parseFloat(aInput.value()); // Начало интервала
-	let b = parseFloat(bInput.value()); // Конец интервала
+	let a = parseFloat(aInput.value());
+	let b = parseFloat(bInput.value());
 	let l = parseFloat(lInput.value());
 	let e = parseFloat(eInput.value());
 
-	print(a,b,l,e);
+	print(a, b, l, e);
 
 	let N = 0;
 	while (fib(N) < (b - a) / l) {
@@ -190,7 +192,7 @@ function fibMethod(myFunc) {
 		let prev_y = y;
 		let prev_z = z;
 
-		if (k == N - 3) {
+		if (k >= N - 3) {
 			y = prev_y = prev_z;
 
 			z = y + e;
@@ -207,12 +209,11 @@ function fibMethod(myFunc) {
 				b = prev_b;
 			}
 
-			iterNum = k;
+			iterNum = k + 1;
 			steps.push({ a: (a + b) / 2, y: (a + b) / 2, z: (a + b) / 2, b: (a + b) / 2, res: f_y <= f_z });
 			return (a + b) / 2;
 		} else {
 			k += 1;
 		}
-		
 	}
 }
