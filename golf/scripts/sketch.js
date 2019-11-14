@@ -19,7 +19,7 @@ function setup() {
 }
 
 function draw() {
-	background(255, 155);
+	background(225, 111);
 
 	ball.update(lineSegments);
 	finishCheck(ball);
