@@ -26,12 +26,19 @@ function draw() {
 
 	ball.draw();
 
-	lineSegments.forEach(l => {
-		l.draw();
-	});
+	for (let i = lineSegments.length - 1; i >= 0; i--) {
+		if (lineSegments[i].p2.x < 0) {
+			lineSegments.splice(i, 1);
+		}
+
+		lineSegments[i].draw();
+	}
 }
+
 function initLevel() {
 	dots = [];
+
+	lineSegments.splice(lineSegments.length-1-4,5);
 	lineSegments.forEach(l => {
 		l.move_away = true;
 	});
@@ -67,7 +74,7 @@ function generateDots(dots) {
 }
 
 function finishCheck(ball) {
-	if (finishMark.dist(ball.pos) <= ball.r && ball.vel.mag() < 1) {
+	if (finishMark.dist(ball.pos) <= ball.r*2 && ball.vel.mag() < 0.8) {
 		initLevel();
 	}
 }
@@ -179,7 +186,7 @@ class Ball {
 
 class LineSegment {
 	constructor(x1, y1, x2, y2) {
-		this.start_offset = width - 50;
+		this.start_offset = width - 53;
 
 		this.p1 = createVector(x1 + this.start_offset, y1);
 		this.p2 = createVector(x2 + this.start_offset, y2);
