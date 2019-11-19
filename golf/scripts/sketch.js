@@ -6,7 +6,9 @@ let finishMark;
 
 let noiseOffset = 0;
 
-let landSlideSpeed = 5;
+let landSlideSpeed = 7;
+
+let noiseLevel = 4;
 
 function setup() {
 	createCanvas(600, 600);
@@ -38,14 +40,14 @@ function draw() {
 function initLevel() {
 	dots = [];
 
-	lineSegments.splice(lineSegments.length-1-4,5);
+	lineSegments.splice(lineSegments.length - 1 - 4, 5);
 	lineSegments.forEach(l => {
 		l.move_away = true;
 	});
 
 	generateDots(dots);
 
-	ball = new Ball(dots[0].x / 2, dots[0].y - 20);
+	ball = new Ball(dots[0].x / 2, dots[0].y);
 	initStartPoint(ball, lineSegments, dots);
 
 	dotsToLineSegments(dots);
@@ -62,7 +64,7 @@ function dotsToLineSegments(dots) {
 function generateDots(dots) {
 	let startPos = 50;
 	let endPos = height - 50;
-	let step = 5;
+	let step = noiseLevel;
 	let numOfParts = (width - startPos - (height - endPos)) / step;
 	for (let i = 0; i < numOfParts; i++) {
 		let noiseValue = noise(i / 25 + noiseOffset);
@@ -74,7 +76,7 @@ function generateDots(dots) {
 }
 
 function finishCheck(ball) {
-	if (finishMark.dist(ball.pos) <= ball.r*2 && ball.vel.mag() < 0.8) {
+	if (finishMark.dist(ball.pos) <= ball.r * 2 && ball.vel.mag() < 0.8) {
 		initLevel();
 	}
 }
@@ -89,14 +91,14 @@ class Ball {
 		this.start_offset = width - 55;
 		this.move_away = true;
 
-		this.pos = createVector(x + this.start_offset, y);
+		this.r = 8;
+		this.pos = createVector(x + this.start_offset, y - this.r * 6);
 		this.old_pos = this.pos;
 		this.vel = createVector(0, 0);
 		this.acc = createVector(0, 0.1);
 
-		this.r = 6;
 		this.friction_coeff = 0.99;
-		this.jumpness_coeff = 0.8;
+		this.jumpness_coeff = 0.6;
 	}
 
 	boundariesCheck() {
@@ -179,7 +181,8 @@ class Ball {
 	}
 
 	draw() {
-		strokeWeight(1);
+		strokeWeight(0);
+		fill(200,50,250);
 		ellipse(this.pos.x, this.pos.y, this.r * 2);
 	}
 }
@@ -211,6 +214,7 @@ class LineSegment {
 		}
 
 		strokeWeight(3);
+		stroke(110,75,0);
 		line(this.p1.x, this.p1.y, this.p2.x, this.p2.y);
 	}
 }
@@ -270,7 +274,7 @@ function mousePressed() {
 		ball.vel.y = 0;
 	} else if (mouseButton === LEFT) {
 		let force = createVector(mouseX - ball.pos.x, mouseY - ball.pos.y);
-		force.setMag(force.mag() / 80);
+		force.setMag(force.mag() / 60);
 
 		if (ball.vel.mag() < 1) {
 			ball.vel.add(force);
