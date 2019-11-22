@@ -49,7 +49,6 @@ function initGrid(rows, cols) {
 
 	placeRandomCell();
 	placeRandomCell();
-	placeRandomCell();
 }
 
 function drawGrid() {
@@ -305,7 +304,7 @@ function placeRandomCell() {
 		let c = floor(random() * gridCols);
 
 		if (gameGrid[r][c] === 0) {
-			addCell(r, c, 2);
+			addCell(r, c, random() < 0.8 ? 2 : 4);
 			break;
 		}
 	}
