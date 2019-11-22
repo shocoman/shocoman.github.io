@@ -6,51 +6,70 @@ let output;
 
 let cells;
 
-let removeFirst = 0;
+let canMove = true;
+
+function preload() {
+  fontBold = loadFont('ClearSans-Bold.ttf');
+}
 
 function setup() {
-	createCanvas(400, 400);
+	createCanvas(600, 600);
 	frameRate(60);
+	
+	output = createElement('text');
 
 	initGrid(gridRows, gridCols);
-
-	output = createElement('text', 'NONE');
-
-	cells = [];
-	
-	placeRandomCell();
-	placeRandomCell();
-	placeRandomCell();
 }
 
 function addCell(r, c, num) {
 	gameGrid[r][c] = num;
-	cells.push(new Cell(r, c, num));
+	cells.push(new Cell(r, c, num, 0));
 }
 
 function draw() {
-	background(220);
+	background(255);
 
-	
+	drawGrid();
+
 	cells.forEach(cell => {
 		cell.move();
 		cell.draw();
 	});
-
-	if (removeFirst !== 0) {
-		cells.splice(0, removeFirst);
-		removeFirst = 0;
-	}
 }
 
 function initGrid(rows, cols) {
+	gridRows = rows;
+	gridCols = cols;
+
 	gameGrid = Array(rows)
 		.fill()
 		.map(_ => Array(cols).fill(0));
+
+	cells = [];
+
+	placeRandomCell();
+	placeRandomCell();
+	placeRandomCell();
+}
+
+function drawGrid() {
+	fill(187, 173, 160);
+	rect(0, 0, width, height, 10);
+
+	for (let row = 0; row < gridRows; row++) {
+		for (let col = 0; col < gridCols; col++) {
+			let size = createVector(width / gridCols, height / gridRows);
+			let pos = createVector(col * size.x + size.x * 0.1, row * size.y + size.y * 0.1);
+
+			noStroke();
+			fill(205, 193, 180);
+			rect(pos.x, pos.y, size.x * 0.8, size.y * 0.8, 3);
+		}
+	}
 }
 
 function showGrid() {
-	let outStr = '';
+	let outStr = '<br>';
 	for (let row = 0; row < gridRows; row++) {
 		for (let col = 0; col < gridCols; col++) {
 			outStr += gameGrid[row][col] + ' ';
@@ -107,7 +126,7 @@ function moveCell(r, c, dir) {
 	}
 
 	if (steps !== 0 && gameGrid[r][c] !== 0) {
-		let newCell = new Cell(r, c, gameGrid[r][c]);
+		let newCell = new Cell(r, c, gameGrid[r][c], 1);
 
 		if (dir === 'right' || dir === 'left') {
 			gameGrid[r][c + steps] += gameGrid[r][c];
@@ -157,7 +176,7 @@ function moveCells(dir) {
 }
 
 class Cell {
-	constructor(r, c, num) {
+	constructor(r, c, num, lvl) {
 		this.gridPos = createVector(r, c);
 		this.size = createVector(width / gridCols, height / gridRows);
 		this.pos = createVector(c * this.size.x, r * this.size.y);
@@ -170,6 +189,8 @@ class Cell {
 		this.newNum = this.number;
 		this.lerpStep = 1;
 		this.moving = false;
+
+		this.lvl = lvl;
 	}
 
 	setNewPos(r, c, newNum) {
@@ -199,11 +220,40 @@ class Cell {
 	}
 
 	draw() {
-		ellipse(this.pos.x + this.size.x / 2, this.pos.y + this.size.y / 2, this.size.x * 0.8);
+		if (this.lvl < 1){
+			this.lvl += 0.15;
+		} else {
+			this.lvl = 1;
+		}
 
-		let size = this.size.y / 5;
-		textSize(size);
-		text(this.number, this.pos.x + this.size.x / 2 - 5 * this.number.toString().length, this.pos.y + this.size.y / 2);
+		let [backgroundColor, textColor] = this.getCellColor(this.number);
+
+		fill(backgroundColor);
+		let size = createVector(width / gridCols, height / gridRows);
+		let pos = createVector(this.pos.x + size.x * 0.5, this.pos.y + size.y * 0.5);
+
+		rectMode(CENTER);
+		rect(pos.x, pos.y, size.x * 0.8 * this.lvl, size.y * 0.8 * this.lvl, 3);
+		rectMode(CORNER);
+
+		fill(textColor);
+		textSize(size.y * 0.8 / 2 * this.lvl);
+		textAlign(CENTER, CENTER);
+		textFont(fontBold);
+		text(this.number, this.pos.x + this.size.x / 2, this.pos.y + size.y * 0.8 / 2);
+	}
+
+	getCellColor(num){
+		switch (num) {
+			case 2: return ["#eee4da", "#776e65"];
+			case 4: return ["#ede0c8", "#776e65"];
+			case 8: return ["#f2b179", "#f9f6f2"];
+			case 16: return ["#f59563", "#f9f6f2"];
+			case 32: return ["#f67c5f", "#f9f6f2"];
+			case 64: return ["#f65e3b", "#f9f6f2"];
+			case 128:
+				default: return ["#edcf72", "#f9f6f2"];
+		}
 	}
 }
 
@@ -219,30 +269,35 @@ function keyPressed() {
 		moveDir = 'down';
 	}
 
-	if (moveDir !== '') {
+	if (moveDir !== '' && canMove === true) {
+		canMove = false;
+
 		moveCells(moveDir);
-		placeRandomCell();
+
+		setTimeout(() => {
+			placeRandomCell();
+			canMove = true;
+		}, 300);
 	}
 }
 
 function placeRandomCell() {
-	let sum = 0;
+	let score = 0;
 	let end = true;
-	for (let col = gridCols - 1; col >= 0; col--) {
-		for (let row = 0; row < gridRows; row++) {
+
+	for (let row = 0; row < gridRows; row++) {
+		for (let col = 0; col < gridCols; col++) {
 			if (gameGrid[row][col] === 0) {
 				end = false;
 			} else {
-				sum += gameGrid[row][col];
+				score += gameGrid[row][col];
 			}
 		}
 	}
-	if (end == true){
+	if (end == true) {
 		noCanvas();
-		output.html("Game Over! Score: " + sum);
+		output.html('Game Over! Score: ' + score);
 		return;
-	} else {
-		showGrid();
 	}
 
 	while (true) {
@@ -254,4 +309,6 @@ function placeRandomCell() {
 			break;
 		}
 	}
+
+	//showGrid();
 }
