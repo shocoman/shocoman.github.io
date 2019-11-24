@@ -9,13 +9,13 @@ let cells;
 let canMove = true;
 
 function preload() {
-  fontBold = loadFont('ClearSans-Bold.ttf');
+	fontBold = loadFont('ClearSans-Bold.ttf');
 }
 
 function setup() {
 	createCanvas(600, 600);
 	frameRate(60);
-	
+
 	output = createElement('text');
 
 	initGrid(gridRows, gridCols);
@@ -33,6 +33,7 @@ function draw() {
 
 	cells.forEach(cell => {
 		cell.move();
+		cell.update();
 		cell.draw();
 	});
 }
@@ -49,10 +50,16 @@ function initGrid(rows, cols) {
 
 	placeRandomCell();
 	placeRandomCell();
+
+	// addCell(1, 1, 2);
+	// addCell(1, 3, 2);
 }
 
 function drawGrid() {
-	fill(187, 173, 160);
+	let gridBackground = '#bbada0';
+	let emptyCellBackground = '#cdc1b4';
+
+	fill(gridBackground);
 	rect(0, 0, width, height, 10);
 
 	for (let row = 0; row < gridRows; row++) {
@@ -61,7 +68,7 @@ function drawGrid() {
 			let pos = createVector(col * size.x + size.x * 0.1, row * size.y + size.y * 0.1);
 
 			noStroke();
-			fill(205, 193, 180);
+			fill(emptyCellBackground);
 			rect(pos.x, pos.y, size.x * 0.8, size.y * 0.8, 3);
 		}
 	}
@@ -79,7 +86,7 @@ function showGrid() {
 	output.html(outStr);
 }
 
-function moveCell(r, c, dir) {
+function moveCell(r, c, dir, checkMovability) {
 	let currentNum = gameGrid[r][c];
 	let steps = 0;
 	if (dir === 'right') {
@@ -124,6 +131,10 @@ function moveCell(r, c, dir) {
 		}
 	}
 
+	if (checkMovability) {
+		return gameGrid[r][c] !== 0 ? steps : 0;
+	}
+
 	if (steps !== 0 && gameGrid[r][c] !== 0) {
 		let newCell = new Cell(r, c, gameGrid[r][c], 1);
 
@@ -146,50 +157,62 @@ function moveCell(r, c, dir) {
 	}
 }
 
-function moveCells(dir) {
+function moveCells(dir, checkMovability) {
+	let stepsMade = 0;
+
 	if (dir === 'right') {
 		for (let col = gridCols - 1; col >= 0; col--) {
 			for (let row = 0; row < gridRows; row++) {
-				moveCell(row, col, dir);
+				stepsMade += moveCell(row, col, dir, checkMovability);
 			}
 		}
 	} else if (dir === 'left') {
 		for (let col = 0; col < gridCols; col++) {
 			for (let row = 0; row < gridRows; row++) {
-				moveCell(row, col, dir);
+				stepsMade += moveCell(row, col, dir, checkMovability);
 			}
 		}
 	} else if (dir === 'up') {
 		for (let row = 0; row < gridRows; row++) {
 			for (let col = 0; col < gridCols; col++) {
-				moveCell(row, col, dir);
+				stepsMade += moveCell(row, col, dir, checkMovability);
 			}
 		}
 	} else if (dir === 'down') {
 		for (let row = gridRows - 1; row >= 0; row--) {
 			for (let col = 0; col < gridCols; col++) {
-				moveCell(row, col, dir);
+				stepsMade += moveCell(row, col, dir, checkMovability);
 			}
 		}
 	}
+
+	return stepsMade == 0;
 }
 
 class Cell {
 	constructor(r, c, num, lvl) {
 		this.gridPos = createVector(r, c);
 		this.size = createVector(width / gridCols, height / gridRows);
-		this.pos = createVector(c * this.size.x, r * this.size.y);
+		this.originalSize = this.size.copy();
 
+		this.pos = createVector(c * this.size.x, r * this.size.y);
 		this.oldPos = this.pos.copy();
 
-		this.number = num;
+		this.num = num;
 
+		// for moving animation
 		this.newPos = this.pos.copy();
-		this.newNum = this.number;
+		this.newNum = this.num;
 		this.lerpStep = 1;
-		this.moving = false;
+		this.movingFinished = false;
 
+		// for showing animation
 		this.lvl = lvl;
+
+		// for merge animation
+		this.popAnim = false;
+		this.sizeVel = 18;
+		this.sizeAcc = 4;
 	}
 
 	setNewPos(r, c, newNum) {
@@ -200,7 +223,6 @@ class Cell {
 		this.newNum = newNum;
 
 		this.lerpStep = 0;
-		//this.moving = true;
 	}
 
 	move() {
@@ -208,51 +230,96 @@ class Cell {
 			this.pos = p5.Vector.lerp(this.oldPos, this.newPos, this.lerpStep);
 			this.lerpStep += 0.1;
 		} else {
-			this.moving = true;
+			this.movingFinished = true;
 		}
 
-		if (this.moving == true) {
-			this.moving = false;
-			this.number = this.newNum;
+		if (this.movingFinished == true) {
+			this.movingFinished = false;
+
+			// start merge "pop" animation
+			if (this.newNum === this.num * 2) {
+				this.popAnim = true;
+			}
+
+			this.num = this.newNum;
 			this.oldPos = this.pos.copy();
 		}
 	}
 
-	draw() {
-		if (this.lvl < 1){
+	update() {
+		// update showing animation
+		if (this.lvl < 1) {
 			this.lvl += 0.15;
 		} else {
 			this.lvl = 1;
 		}
 
-		let [backgroundColor, textColor] = this.getCellColor(this.number);
+		// update merge animation
+		if (this.popAnim || this.size.x > this.originalSize.x) {
+			this.sizeVel -= this.sizeAcc;
+			this.size.add(this.sizeVel, this.sizeVel);
+			this.popAnim = false;
+		} else {
+			this.size = this.originalSize.copy();
+		}
+	}
+
+	draw() {
+		let [backgroundColor, textColor] = this.getCellColor(this.num);
+
+		let pos = createVector(this.pos.x + this.originalSize.x * 0.5, this.pos.y + this.originalSize.y * 0.5);
 
 		fill(backgroundColor);
-		let size = createVector(width / gridCols, height / gridRows);
-		let pos = createVector(this.pos.x + size.x * 0.5, this.pos.y + size.y * 0.5);
-
 		rectMode(CENTER);
-		rect(pos.x, pos.y, size.x * 0.8 * this.lvl, size.y * 0.8 * this.lvl, 3);
+		rect(pos.x, pos.y, this.size.x * 0.8 * this.lvl, this.size.y * 0.8 * this.lvl, 3);
 		rectMode(CORNER);
 
 		fill(textColor);
-		textSize(size.y * 0.8 / 2 * this.lvl);
+		textSize(((this.originalSize.y * 0.8) / 2) * this.lvl - (1 / 1024) * this.num * 8);
 		textAlign(CENTER, CENTER);
 		textFont(fontBold);
-		text(this.number, this.pos.x + this.size.x / 2, this.pos.y + size.y * 0.8 / 2);
+		text(this.num, this.pos.x + this.originalSize.x / 2, this.pos.y + (this.originalSize.y * 0.8) / 2);
 	}
 
-	getCellColor(num){
+	getCellColor(num) {
 		switch (num) {
-			case 2: return ["#eee4da", "#776e65"];
-			case 4: return ["#ede0c8", "#776e65"];
-			case 8: return ["#f2b179", "#f9f6f2"];
-			case 16: return ["#f59563", "#f9f6f2"];
-			case 32: return ["#f67c5f", "#f9f6f2"];
-			case 64: return ["#f65e3b", "#f9f6f2"];
+			case 2:
+				return ['#eee4da', '#776e65'];
+			case 4:
+				return ['#ede0c8', '#776e65'];
+			case 8:
+				return ['#f2b179', '#f9f6f2'];
+			case 16:
+				return ['#ff9563', '#f9f6f2'];
+			case 32:
+				return ['#f67c5f', '#f9f6f2'];
+			case 64:
+				return ['#f65e3b', '#f9f6f2'];
 			case 128:
-				default: return ["#edcf72", "#f9f6f2"];
+				return ['#f63e3f', '#f9f6f2'];
+			case 256:
+				return ['#f60e3b', '#f9f6f2'];
+			case 512:
+				return ['#f59e3b', '#f9f6f2'];
+			case 1024:
+				return ['#fe6e00', '#f9f6f2'];
+			case 2048:
+			default:
+				return ['#fe6fa0', '#f9f6f2'];
 		}
+	}
+}
+
+function checkGameOver() {
+	let score = 0;
+
+	if (moveCells('left', true) && moveCells('right', true) && moveCells('down', true) && moveCells('up', true)) {
+		gameGrid.forEach(arr => arr.forEach(el => (score += el)));
+		output.html('<br> Game Over! <br> Score: ' + score);
+
+		return true;
+	} else {
+		return false;
 	}
 }
 
@@ -268,37 +335,20 @@ function keyPressed() {
 		moveDir = 'down';
 	}
 
-	if (moveDir !== '' && canMove === true) {
+	if (moveDir !== '' && canMove === true && !moveCells(moveDir, true)) {
 		canMove = false;
 
-		moveCells(moveDir);
+		moveCells(moveDir, false);
 
 		setTimeout(() => {
 			placeRandomCell();
+			checkGameOver();
 			canMove = true;
-		}, 300);
+		}, 200);
 	}
 }
 
 function placeRandomCell() {
-	let score = 0;
-	let end = true;
-
-	for (let row = 0; row < gridRows; row++) {
-		for (let col = 0; col < gridCols; col++) {
-			if (gameGrid[row][col] === 0) {
-				end = false;
-			} else {
-				score += gameGrid[row][col];
-			}
-		}
-	}
-	if (end == true) {
-		noCanvas();
-		output.html('Game Over! Score: ' + score);
-		return;
-	}
-
 	while (true) {
 		let r = floor(random() * gridRows);
 		let c = floor(random() * gridCols);
@@ -309,5 +359,5 @@ function placeRandomCell() {
 		}
 	}
 
-	//showGrid();
+	// showGrid();
 }
