@@ -198,10 +198,9 @@ function keyPressed() {
 	} else if (key == ' ') {
 		let ghostLocation = worldToGrid(ghost.pos.x, ghost.pos.y);
 		let ghostNode = gameGrid[ghostLocation.x][ghostLocation.y];
+		let goalNode = gameGrid[selectedRow][selectedCol];
 		let result = AStar(ghostNode, goalNode);
-		//ghost.pos = gridToWorld(startNode.pos.x, startNode.pos.y);
-		ghost.oldPos = gridToWorld(ghostNode.pos.x, ghostNode.pos.y);
-
+		
 		let path = [];
 		for (let k in result) {
 			path.push(gridToWorld(result[k].pos.x, result[k].pos.y));
