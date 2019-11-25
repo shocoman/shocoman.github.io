@@ -16,6 +16,7 @@ function setup() {
 
 function draw() {
 	background(220);
+	noStroke();
 
 	drawLevel();
 }
@@ -67,6 +68,7 @@ function initLevel(rows, cols) {
 			if (col != 0) gameGrid[row][col].neighbours.push(gameGrid[row][col - 1]);
 
 			if (col != gridCols - 1) gameGrid[row][col].neighbours.push(gameGrid[row][col + 1]);
+
 		}
 	}
 }
