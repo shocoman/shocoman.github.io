@@ -5,6 +5,8 @@ let gridCols = 32;
 let startNode;
 let goalNode;
 
+let ghost;
+
 function setup() {
 	createCanvas(600, 600);
 
@@ -12,6 +14,8 @@ function setup() {
 
 	startNode = gameGrid[0][0];
 	goalNode = gameGrid[3][3];
+
+	ghost = new Ghost(gridToWorld(13, 6));
 }
 
 function draw() {
@@ -19,6 +23,18 @@ function draw() {
 	noStroke();
 
 	drawLevel();
+
+	ghost.update();
+	ghost.draw();
+}
+
+function gridToWorld(row, col) {
+	return createVector((col * width) / gridCols, (row * height) / gridRows);
+}
+
+function worldToGrid(x, y) {
+	// row / col
+	return createVector(floor(y / (height / gridRows)), floor(x / (width / gridCols)));
 }
 
 function drawLevel() {
@@ -40,10 +56,8 @@ function drawLevel() {
 
 	for (let k in result) {
 		fill(0, 200, 0);
-		if (k == 0)
-			fill(0,0,255);
-		else if (k == result.length-1)
-			fill(255,0,0);
+		if (k == 0) fill(0, 0, 255);
+		else if (k == result.length - 1) fill(255, 0, 0);
 		rect(result[k].pos.y * sizeX, result[k].pos.x * sizeY, sizeX, sizeY);
 	}
 }
@@ -68,7 +82,6 @@ function initLevel(rows, cols) {
 			if (col != 0) gameGrid[row][col].neighbours.push(gameGrid[row][col - 1]);
 
 			if (col != gridCols - 1) gameGrid[row][col].neighbours.push(gameGrid[row][col + 1]);
-
 		}
 	}
 }
@@ -138,6 +151,42 @@ function AStar(start, goal) {
 	return false;
 }
 
+class Ghost {
+	constructor(pos) {
+		this.pos = pos.copy();
+		this.oldPos = this.pos.copy();
+
+		this.path = [];
+
+		// path moving init
+		this.movingAmount = 0;
+		this.speed = 0.5;
+	}
+
+	setPath(newPath) {
+		this.path = newPath;
+	}
+
+	update() {
+		// path moving update
+		if (this.path.length > 0) {
+			this.movingAmount += this.speed;
+			this.pos = p5.Vector.lerp(this.oldPos, this.path[0], this.movingAmount);
+		}
+
+		if (this.movingAmount >= 1) {
+			this.movingAmount = 0;
+			this.path.splice(0, 1);
+			this.oldPos = this.pos.copy();
+		}
+	}
+
+	draw() {
+		fill(120, 60, 240);
+		rect(this.pos.x, this.pos.y, width / gridCols, height / gridRows);
+	}
+}
+
 function keyPressed() {
 	let selectedRow = floor((mouseY / height) * gridRows);
 	let selectedCol = floor((mouseX / width) * gridCols);
@@ -146,6 +195,18 @@ function keyPressed() {
 		startNode = gameGrid[selectedRow][selectedCol];
 	} else if (key == 'w') {
 		goalNode = gameGrid[selectedRow][selectedCol];
+	} else if (key == ' ') {
+		let ghostLocation = worldToGrid(ghost.pos.x, ghost.pos.y);
+		let ghostNode = gameGrid[ghostLocation.x][ghostLocation.y];
+		let result = AStar(ghostNode, goalNode);
+		//ghost.pos = gridToWorld(startNode.pos.x, startNode.pos.y);
+		ghost.oldPos = gridToWorld(ghostNode.pos.x, ghostNode.pos.y);
+
+		let path = [];
+		for (let k in result) {
+			path.push(gridToWorld(result[k].pos.x, result[k].pos.y));
+		}
+		ghost.setPath(path);
 	}
 }
 
