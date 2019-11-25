@@ -50,9 +50,6 @@ function initGrid(rows, cols) {
 
 	placeRandomCell();
 	placeRandomCell();
-
-	// addCell(1, 1, 2);
-	// addCell(1, 3, 2);
 }
 
 function drawGrid() {

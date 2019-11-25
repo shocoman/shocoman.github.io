@@ -1,0 +1,16 @@
+html, body {
+  margin: 1;
+  padding: 1;
+  text-align:center;
+}
+canvas {
+  display: inline;
+
+}
+
+text {
+  color: teal;
+  font-size: xx-large;
+  /* font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; */
+  font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif
+}
