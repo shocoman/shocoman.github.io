@@ -1,5 +1,5 @@
-let rows = 55;
-let cols = 55;
+let rows = 60;
+let cols = 60;
 let board, cellWidth, cellHeight;
 let initialRow;
 
@@ -11,7 +11,8 @@ let doDraw = false;
 function setup() {
 	createCanvas(600, 600);
 	countFunctionInput = createElement('textarea', 
-`if (sumOfNeighbours == 0) {
+`
+if (sumOfNeighbours == 0) {
 	ret = 0;
 } else if (sumOfNeighbours == 1) {
 	ret = 1;
