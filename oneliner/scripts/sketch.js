@@ -7,12 +7,10 @@ let doDraw = false;
 
 function setup() {
 	createCanvas(800, 800);
-
+	frameRate(15);
 	
 	document.getElementById("genBtn").onclick = initBoard;
 	document.getElementById("patForm").onclick = ()=> {board = generateBoard(initialRow);};
-
-	// initialRow = new Array(cols).fill(0);
 
 	initBoard();
 }
