@@ -7,11 +7,6 @@ canvas, textarea {
   display: inline;
 }
 
-
-#genForm {
-  text-align: left;
-}
-
-#patForm {
+form {
   float: inline-start;
 }

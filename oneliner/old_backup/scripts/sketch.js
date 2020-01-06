@@ -1,33 +1,33 @@
-let rows = 120;
-let cols = 120;
+let rows = 60;
+let cols = 60;
 let board, cellWidth, cellHeight;
 let initialRow;
+
+let countFunctionInput;
+let countFunctionString;
 
 let doDraw = false;
 
 function setup() {
-	createCanvas(800, 800);
-
+	createCanvas(600, 600);
+	countFunctionInput = createElement('textarea', 
+`
+if (sumOfNeighbours == 0) {
+	ret = 0;
+} else if (sumOfNeighbours == 1) {
+	ret = 1;
+} else if (sumOfNeighbours == 2) {
+	ret = 2;
+} else {
+	ret = 0;
+}`
 	
-	document.getElementById("genBtn").onclick = initBoard;
-	document.getElementById("patForm").onclick = ()=> {board = generateBoard(initialRow);};
-
-	// initialRow = new Array(cols).fill(0);
-
-	initBoard();
-}
-
-function initBoard() {
-	let rowsField = document.getElementsByName("rowsField")[0].value;
-	let colsField = document.getElementsByName("colsField")[0].value;
-	rows = parseInt(rowsField);
-	cols = parseInt(colsField);
-
-	cellWidth = width / cols;
-	cellHeight = height / rows;
+	);
+	countFunctionInput.size(500,300);
+	countFunctionString = countFunctionInput.value();
+	countFunctionInput.input(()=>{ countFunctionString = countFunctionInput.value() });
 
 	initialRow = new Array(cols).fill(0);
-	board = generateBoard(initialRow);
 }
 
 function draw() {
@@ -42,13 +42,13 @@ function draw() {
 }
 
 
-function drawInitialRow() {
-	cellWidth = width / cols;
-	cellHeight = height / rows;
-	for (let i = 0; i < cols; i++) {
+function drawInitialRow(){
+	cellWidth = width/cols;
+	cellHeight = height/rows;
+	for (let i = 0; i < cols; i++){
 
 		if (initialRow[i] == 0) fill(200);
-		if (initialRow[i] > 0) fill(20 * initialRow[i]);
+		if (initialRow[i] >= 1) fill(20 * initialRow[i]);
 
 		rect(cellWidth * i, 0, cellWidth, cellHeight);
 	}
@@ -68,21 +68,33 @@ function drawBoard() {
 }
 
 
-function makeChoice(neighbours) {
-	let patternCheckboxes = document.getElementsByName("pattern");
+function makeChoice(sumOfNeighbours) {
+	ret = 0;
 
-	return patternCheckboxes[neighbours].checked ? 1 : 0;
+	// if (sumOfNeighbours == 0) {
+	// 	ret = 0;
+	// } else if (sumOfNeighbours == 1) {
+	// 	ret = 1;
+	// } else if (sumOfNeighbours == 2) {
+	// 	ret = 2;
+	// } else {
+	// 	ret = 0;
+	// }
+
+	eval(countFunctionString);
+
+	return ret
 }
 
 
-function checkNeighbours(row, rowWidth, i) {
-	let leftN = 0, curr = 0, rightN = 0;
+function sumOfNeighbours(row, rowWidth, i) {
+	let sum = 0;
 
-	if (i > 0) leftN = row[i - 1];
-	curr = row[i];
-	if (i < rowWidth - 1) rightN = row[i + 1];
+	if (i > 0) sum += row[i - 1];
+	sum += row[i];
+	if (i < rowWidth - 1) sum += row[i + 1];
 
-	return leftN * 4 + curr * 2 + rightN;
+	return sum;
 }
 
 
@@ -99,8 +111,8 @@ function generateBoard(initialRow) {
 		let currentRow = board.slice(-1)[0];
 
 		for (let i = 0; i < rowWidth; i++) {
-			neighbours = checkNeighbours(currentRow, rowWidth, i);
-			nextRow[i] = makeChoice(neighbours);
+			sum = sumOfNeighbours(currentRow, rowWidth, i);
+			nextRow[i] = makeChoice(sum);
 		}
 
 		board.push(nextRow);
@@ -124,7 +136,7 @@ function mousePressed() {
 	let cellRow = floor(mouseY / cellHeight);
 	let cellCol = floor(mouseX / cellWidth);
 
-	if (cellRow >= 0 && cellCol >= 0 && cellCol < cols) {
+	if (cellRow == 0 && cellCol >= 0 && cellCol < cols) {
 
 		initialRow[cellCol] = initialRow[cellCol] == 1 ? 0 : 1;
 	}
