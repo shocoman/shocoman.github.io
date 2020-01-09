@@ -1,17 +1,13 @@
-html, body {
-  margin: 1;
-  padding: 1;
-  text-align:center;
-}
-canvas, textarea {
-  display: inline;
-}
 
 
 #genForm {
-  text-align: left;
+  text-align: center;
 }
 
-#patForm {
-  float: inline-start;
+#patForm, canvas {
+  width: 30%;
+  margin: 0 auto;
+  text-align:right;
+  float: left;
+  /* vertical-align: top; */
 }
