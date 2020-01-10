@@ -72,7 +72,7 @@ var Point = (function () {
     function Point(x, y) {
         this.radius = 4;
         this.rotationSpeed = 0.1;
-        this.movingSpeed = 5;
+        this.movingSpeed = 6;
         this.noiceScale = 5;
         this.noiceOffset = 0;
         this.controlledByAI = false;
@@ -327,7 +327,7 @@ var Apple = (function () {
 }());
 var apple;
 function setup() {
-    createCanvas(600, 600);
+    createCanvas(windowWidth, windowHeight);
     snake = new GhostedSnake(width / 2 - 200, height / 2);
     apple = new Apple(random(30, width - 30), random(30, height - 30));
 }
