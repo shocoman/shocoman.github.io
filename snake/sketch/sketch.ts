@@ -5,7 +5,6 @@ enum Rotation {
 }
 
 class Point {
-
     pos: p5.Vector;
 
     dir: p5.Vector;
@@ -13,7 +12,7 @@ class Point {
 
     radius: number = 4;
     rotationSpeed: number = 0.1;
-    movingSpeed: number = 5;
+    movingSpeed: number = 6;
 
     noiceScale: number = 5;
     noiceOffset: number = 0;
@@ -26,13 +25,12 @@ class Point {
         this.noiceOffset = random(1000000);
     }
 
-    draw(): void {
+    draw() {
         fill(100);
         circle(this.pos.x, this.pos.y, this.radius * 2);
     }
 
     move() {
-
         switch (this.rotation) {
             case Rotation.LEFT:
                 this.dir.rotate(-this.rotationSpeed);
@@ -43,7 +41,6 @@ class Point {
             default:
                 break;
         }
-
 
         if (this.controlledByAI) {
             this.AIControl();
@@ -57,9 +54,7 @@ class Point {
         this.dir.rotate(rotNoise);
 
         let angle = p5.Vector.sub(apple.pos, this.pos).angleBetween(this.dir);
-        this.dir.rotate(angle/10);
-        // let z: p5.Vector = p5.Vector.lerp(this.dir, p5.Vector.sub(apple.pos, this.pos), 0.1);
-        // this.dir = z;
+        this.dir.rotate(angle / 10);
     }
 }
 
@@ -70,13 +65,6 @@ class Snake {
     head: Point;
     distance = 10;
     numberOfPoints = 15;
-
-    rotation: Rotation;
-    rotationSpeed: number = 0.1;
-    movingSpeed: number = 5;
-
-    closest: boolean = false;
-    controlByAI: boolean = false;
 
     snakeColor: p5.Color = color(100, 255, 10);
     tongueColor: p5.Color = color(200, 0, 0);
@@ -90,18 +78,15 @@ class Snake {
             this.head = points[0];
             this.head.controlledByAI = true;
             this.snakeColor = color(200, 100, 0);
+        } else {
+            this.points = new Array<Point>();
+            this.points.push(new Point(headX, headY));
+            this.head = this.points[0];
 
-            return;
+            for (let i = 0; i < this.numberOfPoints; i++) {
+                this.points.push(new Point(this.head.pos.x - this.distance * i, this.head.pos.y));
+            }
         }
-
-        this.points = new Array<Point>();
-        this.points.push(new Point(headX, headY));
-        this.head = this.points[0];
-
-        for (let i = 0; i < this.numberOfPoints; i++) {
-            this.points.push(new Point(this.head.pos.x - this.distance * i, this.head.pos.y));
-        }
-
     }
 
     move() {
@@ -112,13 +97,10 @@ class Snake {
         } else {
             this.head.rotation = Rotation.NONE;
         }
-
-
     }
 
 
     draw() {
-
         // Update part
         this.head.move();
 
@@ -198,22 +180,7 @@ class GhostedSnake {
 
     update() {
 
-        this.childSnakes.forEach(snake => {
-
-            if (snake.head.pos.dist(apple.pos) < snake.distance*2) {
-                apple = new Apple(random(30, width - 30), random(30, height - 30));
-
-                snake.numberOfPoints += 5;
-                for (let i = 0; i < 5; i++) {
-                    let lastPoint = snake.points[snake.points.length - 1].pos;
-                    snake.points.push(new Point(lastPoint.x, lastPoint.y));
-                }
-
-            }
-            snake.draw();
-        });
-
-
+        this.updateChildren();
 
         this.eatingYourself();
 
@@ -224,6 +191,23 @@ class GhostedSnake {
         this.snakes.forEach(s => {
             s.move();
             s.draw();
+        });
+    }
+
+    updateChildren() {
+        this.childSnakes.forEach(snake => {
+
+            if (snake.head.pos.dist(apple.pos) < snake.distance * 2.5) {
+                apple.destroyed = true;
+
+                snake.numberOfPoints += 5;
+                for (let i = 0; i < 5; i++) {
+                    let lastPoint = snake.points[snake.points.length - 1].pos;
+                    snake.points.push(new Point(lastPoint.x, lastPoint.y));
+                }
+
+            }
+            snake.draw();
         });
     }
 
@@ -359,12 +343,10 @@ class Apple {
 let apple: Apple;
 
 function setup() {
-    createCanvas(600, 600);
-    // frameRate(120);
+    createCanvas(windowWidth, windowHeight);
 
     snake = new GhostedSnake(width / 2 - 200, height / 2);
     apple = new Apple(random(30, width - 30), random(30, height - 30));
-
 }
 
 function draw() {
@@ -376,29 +358,4 @@ function draw() {
     } else {
         apple = new Apple(random(30, width - 30), random(30, height - 30));
     }
-}
-
-
-function mouseMoved() {
-    // snakes[0].head.pos = createVector(mouseX, mouseY);
-}
-
-
-
-
-function keyPressed() {
-    // if (keyCode === UP_ARROW) {
-    //     positionGhosts();
-    //     print("TELEPORT!!!");
-    //     print(snakes.length);
-    // }
-
-    if (keyCode === UP_ARROW) {
-        // positionGhosts();
-        // print("TELEPORT!!!");
-        // print(snakes.length);
-        // snake.increaseLength(10);
-        apple.progress += 1;
-    }
-
 }

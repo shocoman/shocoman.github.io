@@ -1,67 +1,3 @@
-var ColorHelper = (function () {
-    function ColorHelper() {
-    }
-    ColorHelper.getColorVector = function (c) {
-        return createVector(red(c), green(c), blue(c));
-    };
-    ColorHelper.rainbowColorBase = function () {
-        return [
-            color('red'),
-            color('orange'),
-            color('yellow'),
-            color('green'),
-            color(38, 58, 150),
-            color('indigo'),
-            color('violet')
-        ];
-    };
-    ColorHelper.getColorsArray = function (total, baseColorArray) {
-        var _this = this;
-        if (baseColorArray === void 0) { baseColorArray = null; }
-        if (baseColorArray == null) {
-            baseColorArray = ColorHelper.rainbowColorBase();
-        }
-        var rainbowColors = baseColorArray.map(function (x) { return _this.getColorVector(x); });
-        ;
-        var colours = new Array();
-        for (var i = 0; i < total; i++) {
-            var colorPosition = i / total;
-            var scaledColorPosition = colorPosition * (rainbowColors.length - 1);
-            var colorIndex = Math.floor(scaledColorPosition);
-            var colorPercentage = scaledColorPosition - colorIndex;
-            var nameColor = this.getColorByPercentage(rainbowColors[colorIndex], rainbowColors[colorIndex + 1], colorPercentage);
-            colours.push(color(nameColor.x, nameColor.y, nameColor.z));
-        }
-        return colours;
-    };
-    ColorHelper.getColorByPercentage = function (firstColor, secondColor, percentage) {
-        var firstColorCopy = firstColor.copy();
-        var secondColorCopy = secondColor.copy();
-        var deltaColor = secondColorCopy.sub(firstColorCopy);
-        var scaledDeltaColor = deltaColor.mult(percentage);
-        return firstColorCopy.add(scaledDeltaColor);
-    };
-    return ColorHelper;
-}());
-var Shapes = (function () {
-    function Shapes() {
-    }
-    Shapes.star = function (x, y, radius1, radius2, npoints) {
-        var angle = TWO_PI / npoints;
-        var halfAngle = angle / 2.0;
-        var points = new Array();
-        for (var a = 0; a < TWO_PI; a += angle) {
-            var sx = x + cos(a) * radius2;
-            var sy = y + sin(a) * radius2;
-            points.push(createVector(sx, sy));
-            sx = x + cos(a + halfAngle) * radius1;
-            sy = y + sin(a + halfAngle) * radius1;
-            points.push(createVector(sx, sy));
-        }
-        return points;
-    };
-    return Shapes;
-}());
 var Rotation;
 (function (Rotation) {
     Rotation[Rotation["NONE"] = 0] = "NONE";
@@ -113,10 +49,6 @@ var Snake = (function () {
         if (points === void 0) { points = undefined; }
         this.distance = 10;
         this.numberOfPoints = 15;
-        this.rotationSpeed = 0.1;
-        this.movingSpeed = 5;
-        this.closest = false;
-        this.controlByAI = false;
         this.snakeColor = color(100, 255, 10);
         this.tongueColor = color(200, 0, 0);
         this.eyesColor = color(0, 0, 200);
@@ -126,13 +58,14 @@ var Snake = (function () {
             this.head = points[0];
             this.head.controlledByAI = true;
             this.snakeColor = color(200, 100, 0);
-            return;
         }
-        this.points = new Array();
-        this.points.push(new Point(headX, headY));
-        this.head = this.points[0];
-        for (var i = 0; i < this.numberOfPoints; i++) {
-            this.points.push(new Point(this.head.pos.x - this.distance * i, this.head.pos.y));
+        else {
+            this.points = new Array();
+            this.points.push(new Point(headX, headY));
+            this.head = this.points[0];
+            for (var i = 0; i < this.numberOfPoints; i++) {
+                this.points.push(new Point(this.head.pos.x - this.distance * i, this.head.pos.y));
+            }
         }
     }
     Snake.prototype.move = function () {
@@ -199,17 +132,7 @@ var GhostedSnake = (function () {
         this.positionGhosts();
     }
     GhostedSnake.prototype.update = function () {
-        this.childSnakes.forEach(function (snake) {
-            if (snake.head.pos.dist(apple.pos) < snake.distance * 2) {
-                apple = new Apple(random(30, width - 30), random(30, height - 30));
-                snake.numberOfPoints += 5;
-                for (var i = 0; i < 5; i++) {
-                    var lastPoint = snake.points[snake.points.length - 1].pos;
-                    snake.points.push(new Point(lastPoint.x, lastPoint.y));
-                }
-            }
-            snake.draw();
-        });
+        this.updateChildren();
         this.eatingYourself();
         if (!this.snakes[0].headIsOnScreen()) {
             this.positionGhosts();
@@ -217,6 +140,19 @@ var GhostedSnake = (function () {
         this.snakes.forEach(function (s) {
             s.move();
             s.draw();
+        });
+    };
+    GhostedSnake.prototype.updateChildren = function () {
+        this.childSnakes.forEach(function (snake) {
+            if (snake.head.pos.dist(apple.pos) < snake.distance * 2.5) {
+                apple.destroyed = true;
+                snake.numberOfPoints += 5;
+                for (var i = 0; i < 5; i++) {
+                    var lastPoint = snake.points[snake.points.length - 1].pos;
+                    snake.points.push(new Point(lastPoint.x, lastPoint.y));
+                }
+            }
+            snake.draw();
         });
     };
     GhostedSnake.prototype.eatingYourself = function () {
@@ -339,13 +275,6 @@ function draw() {
     }
     else {
         apple = new Apple(random(30, width - 30), random(30, height - 30));
-    }
-}
-function mouseMoved() {
-}
-function keyPressed() {
-    if (keyCode === UP_ARROW) {
-        apple.progress += 1;
     }
 }
 //# sourceMappingURL=build.js.map
