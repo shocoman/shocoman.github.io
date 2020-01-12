@@ -281,8 +281,6 @@ class GhostedSnake {
 }
 
 
-let snake: GhostedSnake;
-
 class Apple {
     pos: p5.Vector;
     size: number;
@@ -340,6 +338,10 @@ class Apple {
     }
 }
 
+
+let snake: GhostedSnake;
+
+
 let apple: Apple;
 
 function setup() {
@@ -357,5 +359,11 @@ function draw() {
         apple.draw();
     } else {
         apple = new Apple(random(30, width - 30), random(30, height - 30));
+    }
+}
+
+function keyPressed() {
+    if (key === " ") {
+        snake.childSnakes.push(new Snake(0,0, [new Point(random(30, width - 30), random(30, height - 30))]));
     }
 }

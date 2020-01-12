@@ -217,7 +217,6 @@ var GhostedSnake = (function () {
     };
     return GhostedSnake;
 }());
-var snake;
 var Apple = (function () {
     function Apple(x, y) {
         this.progress = 1;
@@ -261,6 +260,7 @@ var Apple = (function () {
     };
     return Apple;
 }());
+var snake;
 var apple;
 function setup() {
     createCanvas(windowWidth, windowHeight);
@@ -275,6 +275,11 @@ function draw() {
     }
     else {
         apple = new Apple(random(30, width - 30), random(30, height - 30));
+    }
+}
+function keyPressed() {
+    if (key === " ") {
+        snake.childSnakes.push(new Snake(0, 0, [new Point(random(30, width - 30), random(30, height - 30))]));
     }
 }
 //# sourceMappingURL=build.js.map
