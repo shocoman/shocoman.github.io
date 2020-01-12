@@ -57,7 +57,9 @@ var Snake = (function () {
             this.points = points.slice();
             this.head = points[0];
             this.head.controlledByAI = true;
-            this.snakeColor = color(200, 100, 0);
+            // this.snakeColor = color(random(255), random(255), random(255));
+            // colorMode(HSL, 255);
+            this.snakeColor = color(`hsl(${floor(random(360))}, 100%, 50%)`);
         }
         else {
             this.points = new Array();
@@ -279,7 +281,9 @@ function draw() {
 }
 function keyPressed() {
     if (key === " ") {
-        snake.childSnakes.push(new Snake(0, 0, [new Point(random(30, width - 30), random(30, height - 30))]));
+        ss = [];
+        for (let i = 0;i<random(1, 15);i++) ss.push(new Point(random(30, width - 30), random(30, height - 30)))
+        snake.childSnakes.push(new Snake(0, 0, ss));
     }
 }
 //# sourceMappingURL=build.js.map
