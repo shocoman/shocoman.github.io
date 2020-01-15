@@ -288,9 +288,9 @@ function keyPressed() {
     }
 }
 
-function doubleClicked(){
+function mouseClicked(){
 
-    if (mouseY > height/8) return;
+    if (mouseY > height/16) return;
 
     ss = [];
     for (let i = 0;i<random(1, 15);i++) ss.push(new Point(random(30, width - 30), random(30, height - 30)))
