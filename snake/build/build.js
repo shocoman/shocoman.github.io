@@ -71,10 +71,10 @@ var Snake = (function () {
         }
     }
     Snake.prototype.move = function () {
-        if (keyIsDown(LEFT_ARROW)) {
+        if (keyIsDown(LEFT_ARROW) || mouseIsPressed && mouseX < width/2) {
             this.head.rotation = Rotation.LEFT;
         }
-        else if (keyIsDown(RIGHT_ARROW)) {
+        else if (keyIsDown(RIGHT_ARROW) || mouseIsPressed && mouseX >= width/2) {
             this.head.rotation = Rotation.RIGHT;
         }
         else {
@@ -279,6 +279,7 @@ function draw() {
         apple = new Apple(random(30, width - 30), random(30, height - 30));
     }
 }
+
 function keyPressed() {
     if (key === " ") {
         ss = [];
@@ -286,4 +287,14 @@ function keyPressed() {
         snake.childSnakes.push(new Snake(0, 0, ss));
     }
 }
+
+function doubleClicked(){
+
+    if (mouseY > height/8) return;
+
+    ss = [];
+    for (let i = 0;i<random(1, 15);i++) ss.push(new Point(random(30, width - 30), random(30, height - 30)))
+    snake.childSnakes.push(new Snake(0, 0, ss));
+}
+
 //# sourceMappingURL=build.js.map
