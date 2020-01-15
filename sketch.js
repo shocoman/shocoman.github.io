@@ -1,19 +1,22 @@
 new p5();
 const mod = (x, n) => (x % n + n) % n;
+let r = 40;
+
+function isInside (j,i) {
+  let ret = Math.sqrt((j-table_cols/2)**2 + (i-table_rows/2)**2) < Math.abs(r);
+  return r > 0 ? ret : !ret;
+} 
 
 function setup() {
-  createCanvas(600, 600);
-  
-
-
+  createCanvas(windowWidth, windowHeight);
 }
 
 let tiles = [];
-let table_cols = 150;
-let table_rows = 150;
+let table_cols = 100;
+let table_rows = 100;
 
 
-create_table = function(rows, cols) {
+create_table = function (rows, cols) {
   let table = []
 
   for (let j = 0; j < rows; j++) {
@@ -27,7 +30,7 @@ create_table = function(rows, cols) {
   return table;
 }
 
-draw_table = function(table) {
+draw_table = function (table) {
   for (let j = 0; j < table_rows; j++) {
     for (let i = 0; i < table_cols; i++) {
 
@@ -46,8 +49,8 @@ draw_table = function(table) {
   }
 }
 
-let table = create_table(table_cols, table_rows);
 
+let table = create_table(table_cols, table_rows);
 
 function count_neighbours(table, row, col) {
   let n = 0;
@@ -72,6 +75,9 @@ function count_neighbours(table, row, col) {
   return n;
 }
 
+
+
+
 function random_cells() {
 
   let cells = table_rows * table_cols * 0.1;
@@ -81,6 +87,7 @@ function random_cells() {
     let x = int(random(table_cols));
     let y = int(random(table_rows));
 
+    if (isInside(x,y)) continue;
     if (table[x][y] != '*')
       table[x][y] = '*';
     cells -= 1;
@@ -96,9 +103,11 @@ function next_turn() {
 
   for (let j = 0; j < table_rows; j++) {
     for (let i = 0; i < table_cols; i++) {
-      
+
       let neighbours = count_neighbours(table, j, i);
 
+      // if (i > 10 && i < 40 && j > 10 && j < 40) continue;
+      if (isInside(j,i)) continue;
 
       if (neighbours < 2)
         table[j][i] = ' ';
@@ -110,12 +119,8 @@ function next_turn() {
         table[j][i] = '*';
       else
         table[j][i] = ' ';
-
     }
   }
-
-
-
 }
 
 function draw() {
@@ -127,8 +132,6 @@ function draw() {
 
 
 function mousePressed() {
-  
-
   table = create_table(table_cols, table_rows);
   random_cells();
 }
