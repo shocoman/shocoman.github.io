@@ -1,300 +1,220 @@
-var Rotation;
-(function (Rotation) {
-    Rotation[Rotation["NONE"] = 0] = "NONE";
-    Rotation[Rotation["LEFT"] = 1] = "LEFT";
-    Rotation[Rotation["RIGHT"] = 2] = "RIGHT";
-})(Rotation || (Rotation = {}));
-var Point = (function () {
-    function Point(x, y) {
-        this.radius = 4;
-        this.rotationSpeed = 0.1;
-        this.movingSpeed = 6;
-        this.noiceScale = 5;
-        this.noiceOffset = 0;
-        this.controlledByAI = false;
+class ObjectAnimation {
+    constructor(sprite_sheet_path, cols_num, rows_num, frames_num, frame_pos, frame_size, col_offset = 0, row_offset = 0) {
+        this.img = loadImage(sprite_sheet_path);
+        this.cols_number = cols_num;
+        this.rows_number = rows_num;
+        this.number_of_frames = frames_num;
+        this.current_frame = 0;
+        this.frame_pos = frame_pos;
+        this.frame_size = frame_size;
+        this.column_offset = col_offset;
+        this.row_offset = row_offset;
+    }
+    draw(pos, size, is_flipped) {
+        if (is_flipped) {
+            scale(-1, 1);
+            translate(-size.x, 0);
+        }
+        image(this.img, pos.x * (is_flipped ? -1 : 1), pos.y, size.x, size.y, this.frame_pos.x + this.get_current_col() * (this.frame_size.x + this.column_offset), this.frame_pos.y + this.get_current_row() * (this.frame_size.y + this.row_offset), this.frame_size.x, this.frame_size.y);
+    }
+    next_frame() {
+        this.current_frame += 1;
+        if (this.current_frame >= this.number_of_frames) {
+            this.current_frame = 0;
+        }
+    }
+    play() {
+        this.is_paused = !this.is_paused;
+    }
+    get_current_col() {
+        return this.current_frame % this.cols_number;
+    }
+    get_current_row() {
+        return int(this.current_frame / this.cols_number);
+    }
+}
+class AnimationManager {
+    constructor() {
+        this.anims = {};
+        this.paused = false;
+        this.is_flipped = false;
+        this.speed = 5;
+    }
+    load(name, sprite_sheet_path, cols_num, rows_num, frames_num, frame_pos, frame_size) {
+        let new_animation = new ObjectAnimation(sprite_sheet_path, cols_num, rows_num, frames_num, frame_pos, frame_size);
+        this.anims[name] = new_animation;
+    }
+    show(name, pos, size, frame = undefined) {
+        if (frame != undefined)
+            this.anims[name].current_frame = frame;
+        this.anims[name].draw(pos, size, this.is_flipped);
+        if (!this.paused && frameCount % this.speed == 0)
+            this.anims[name].next_frame();
+    }
+    play() {
+        this.paused = !this.paused;
+    }
+    flip() {
+        this.is_flipped = !this.is_flipped;
+    }
+    set_speed(speed) {
+        this.speed = speed;
+    }
+}
+var ObstacleType;
+(function (ObstacleType) {
+    ObstacleType[ObstacleType["Pterodactyl"] = 0] = "Pterodactyl";
+    ObstacleType[ObstacleType["Other"] = 1] = "Other";
+})(ObstacleType || (ObstacleType = {}));
+class Obstacle {
+    constructor(x, y, w, h, obstacleAnimManager) {
         this.pos = createVector(x, y);
-        this.dir = createVector(this.movingSpeed, 0);
-        this.noiceOffset = random(1000000);
+        this.size = createVector(w, h);
+        this.type = ObstacleType.Pterodactyl;
+        this.animManager = obstacleAnimManager;
     }
-    Point.prototype.draw = function () {
-        fill(100);
-        circle(this.pos.x, this.pos.y, this.radius * 2);
-    };
-    Point.prototype.move = function () {
-        switch (this.rotation) {
-            case Rotation.LEFT:
-                this.dir.rotate(-this.rotationSpeed);
-                break;
-            case Rotation.RIGHT:
-                this.dir.rotate(this.rotationSpeed);
-                break;
-            default:
-                break;
-        }
-        if (this.controlledByAI) {
-            this.AIControl();
-        }
-        this.pos.add(this.dir);
-    };
-    Point.prototype.AIControl = function () {
-        var rotNoise = noise(frameCount * this.noiceScale + this.noiceOffset) * 2 - 1;
-        this.dir.rotate(rotNoise);
-        var angle = p5.Vector.sub(apple.pos, this.pos).angleBetween(this.dir);
-        this.dir.rotate(angle / 10);
-    };
-    return Point;
-}());
-var Snake = (function () {
-    function Snake(headX, headY, points) {
-        if (points === void 0) { points = undefined; }
-        this.distance = 10;
-        this.numberOfPoints = 15;
-        this.snakeColor = color(100, 255, 10);
-        this.tongueColor = color(200, 0, 0);
-        this.eyesColor = color(0, 0, 200);
-        if (points != undefined) {
-            this.numberOfPoints = points.length;
-            this.points = points.slice();
-            this.head = points[0];
-            this.head.controlledByAI = true;
-            // this.snakeColor = color(random(255), random(255), random(255));
-            // colorMode(HSL, 255);
-            this.snakeColor = color(`hsl(${floor(random(360))}, 100%, 50%)`);
+    setType(newType) {
+        this.type = newType;
+    }
+    update(xSpeed) {
+        this.pos.x -= xSpeed;
+    }
+    draw() {
+        if (this.type == ObstacleType.Pterodactyl) {
+            this.animManager.show('pterodactyl', this.pos, this.size);
         }
         else {
-            this.points = new Array();
-            this.points.push(new Point(headX, headY));
-            this.head = this.points[0];
-            for (var i = 0; i < this.numberOfPoints; i++) {
-                this.points.push(new Point(this.head.pos.x - this.distance * i, this.head.pos.y));
-            }
+            fill(120, 0, 10);
+            ellipse(this.pos.x, this.pos.y, this.size.x, this.size.y);
         }
     }
-    Snake.prototype.move = function () {
-        if (keyIsDown(LEFT_ARROW) || mouseIsPressed && mouseX < width/2) {
-            this.head.rotation = Rotation.LEFT;
-        }
-        else if (keyIsDown(RIGHT_ARROW) || mouseIsPressed && mouseX >= width/2) {
-            this.head.rotation = Rotation.RIGHT;
-        }
-        else {
-            this.head.rotation = Rotation.NONE;
-        }
-    };
-    Snake.prototype.draw = function () {
-        this.head.move();
-        for (var i = 1; i < this.points.length; i++) {
-            var currentPoint = this.points[i];
-            var previousPoint = this.points[i - 1];
-            if (currentPoint.pos.dist(previousPoint.pos) > this.distance) {
-                var newPosition = p5.Vector.sub(currentPoint.pos, previousPoint.pos).normalize().mult(this.distance).add(previousPoint.pos);
-                currentPoint.pos = newPosition;
-            }
-            stroke(this.snakeColor);
-            strokeWeight(map(i, 1, this.points.length, 13, 1));
-            line(currentPoint.pos.x, currentPoint.pos.y, previousPoint.pos.x, previousPoint.pos.y);
-        }
-        var tongueStart = this.head.pos;
-        var tongueEnd = p5.Vector.add(this.head.pos, p5.Vector.mult(this.head.dir, 2));
-        stroke(this.tongueColor);
-        strokeWeight(8);
-        line(tongueStart.x, tongueStart.y, tongueEnd.x, tongueEnd.y);
-        stroke(this.snakeColor);
-        strokeWeight(13);
-        this.head.draw();
-        fill(this.eyesColor);
-        noStroke();
-        var leftEye = this.head.pos.copy().add(this.head.dir.copy().rotate(-PI / 2));
-        var rightEye = this.head.pos.copy().add(this.head.dir.copy().rotate(PI / 2));
-        circle(leftEye.x, leftEye.y, 7);
-        circle(rightEye.x, rightEye.y, 7);
-    };
-    Snake.prototype.transfer = function (newX, newY) {
-        var shift = createVector(newX, newY).sub(this.head.pos);
-        this.points.forEach(function (point) {
-            point.pos.add(shift);
-        });
-    };
-    Snake.prototype.headIsOnScreen = function () {
-        if (this.head.pos.x >= 0 && this.head.pos.x <= width &&
-            this.head.pos.y >= 0 && this.head.pos.y <= height)
-            return true;
-        else
-            return false;
-    };
-    return Snake;
-}());
-var GhostedSnake = (function () {
-    function GhostedSnake(x, y) {
-        this.snakes = new Array();
-        this.childSnakes = new Array();
-        this.snakes.push(new Snake(x, y));
-        for (var i = 0; i < 8; i++)
-            this.snakes.push(new Snake(x, y));
-        this.positionGhosts();
+}
+var PlayerState;
+(function (PlayerState) {
+    PlayerState[PlayerState["Running"] = 0] = "Running";
+    PlayerState[PlayerState["Jumping"] = 1] = "Jumping";
+})(PlayerState || (PlayerState = {}));
+class Player {
+    constructor(position, size, animManager) {
+        this.pos = position;
+        this.vel = createVector();
+        this.acc = createVector(0, 1);
+        this.size = size;
+        this.animManager = animManager;
+        this.playerState = PlayerState.Jumping;
     }
-    GhostedSnake.prototype.update = function () {
-        this.updateChildren();
-        this.eatingYourself();
-        if (!this.snakes[0].headIsOnScreen()) {
-            this.positionGhosts();
-        }
-        this.snakes.forEach(function (s) {
-            s.move();
-            s.draw();
-        });
-    };
-    GhostedSnake.prototype.updateChildren = function () {
-        this.childSnakes.forEach(function (snake) {
-            if (snake.head.pos.dist(apple.pos) < snake.distance * 2.5) {
-                apple.destroyed = true;
-                snake.numberOfPoints += 5;
-                for (var i = 0; i < 5; i++) {
-                    var lastPoint = snake.points[snake.points.length - 1].pos;
-                    snake.points.push(new Point(lastPoint.x, lastPoint.y));
-                }
-            }
-            snake.draw();
-        });
-    };
-    GhostedSnake.prototype.eatingYourself = function () {
-        var mainSnake = this.snakes[0];
-        if (mainSnake.points.length < 5)
-            return;
-        for (var i = 4; i < mainSnake.points.length; i++) {
-            if (mainSnake.head.pos.dist(mainSnake.points[i].pos) < mainSnake.distance / 2) {
-                this.shortenLength(i);
-                break;
-            }
-        }
-    };
-    GhostedSnake.prototype.closestToCenterSnake = function () {
-        var centerPos = createVector(width / 2, height / 2);
-        var bestSnake = this.snakes[0];
-        for (var i = 0; i < this.snakes.length; i++) {
-            var headPos = this.snakes[i].head.pos;
-            if (headPos.x >= 0 && headPos.x <= width && headPos.y >= 0 && headPos.y <= height)
-                bestSnake = this.snakes[i];
-        }
-        return bestSnake;
-    };
-    GhostedSnake.prototype.positionGhosts = function () {
-        var snake = this.closestToCenterSnake();
-        var bestSnakePos = snake.head.pos.copy();
-        this.snakes[0].transfer(bestSnakePos.x, bestSnakePos.y);
-        this.snakes[1].transfer(bestSnakePos.x + width, bestSnakePos.y);
-        this.snakes[2].transfer(bestSnakePos.x - width, bestSnakePos.y);
-        this.snakes[3].transfer(bestSnakePos.x, bestSnakePos.y + height);
-        this.snakes[4].transfer(bestSnakePos.x, bestSnakePos.y - height);
-        this.snakes[5].transfer(bestSnakePos.x + width, bestSnakePos.y + height);
-        this.snakes[6].transfer(bestSnakePos.x - width, bestSnakePos.y + height);
-        this.snakes[7].transfer(bestSnakePos.x + width, bestSnakePos.y - height);
-        this.snakes[8].transfer(bestSnakePos.x - width, bestSnakePos.y - height);
-    };
-    GhostedSnake.prototype.increaseLength = function (n) {
-        for (var _i = 0, _a = this.snakes; _i < _a.length; _i++) {
-            var s = _a[_i];
-            s.numberOfPoints += n;
-            for (var i = 0; i < n; i++) {
-                var lastPoint = this.snakes[0].points[this.snakes[0].points.length - 1].pos;
-                s.points.push(new Point(lastPoint.x, lastPoint.y));
-            }
-        }
-    };
-    GhostedSnake.prototype.shortenLength = function (untilPoint) {
-        var newPoints = [];
-        var childLength = this.snakes[0].numberOfPoints - untilPoint;
-        if (childLength > 0) {
-            for (var i = 0; i < this.snakes[0].numberOfPoints - untilPoint; i++) {
-                var pointOfCollision = this.snakes[0].points[untilPoint];
-                newPoints.push(new Point(pointOfCollision.pos.x, pointOfCollision.pos.y));
-            }
-            this.childSnakes.push(new Snake(0, 0, newPoints));
-        }
-        for (var _i = 0, _a = this.snakes; _i < _a.length; _i++) {
-            var s = _a[_i];
-            s.numberOfPoints -= s.numberOfPoints - untilPoint;
-            s.points = s.points.slice(0, untilPoint + 1);
-        }
-    };
-    return GhostedSnake;
-}());
-var Apple = (function () {
-    function Apple(x, y) {
-        this.progress = 1;
-        this.destroyed = false;
-        this.pos = createVector(x, y);
-        this.eatenAndMoving = false;
-        this.swinging = true;
-        this.size = 20;
+    jump() {
+        this.playerState = PlayerState.Jumping;
+        let jumpForce = createVector(0, -20);
+        this.vel.add(jumpForce);
     }
-    Apple.prototype.draw = function () {
-        if (this.pos.dist(snake.snakes[0].head.pos) < 20) {
-            this.swinging = false;
-            this.eatenAndMoving = true;
+    update(obstacles) {
+        this.vel.add(this.acc);
+        this.pos.add(this.vel);
+        if (this.pos.y + this.size.y > height - floorLevel) {
+            this.playerState = PlayerState.Running;
+            this.pos.y = (height - floorLevel) - this.size.y;
+            this.vel.y = 0;
         }
-        if (this.eatenAndMoving) {
-            if (floor(this.progress) >= snake.snakes[0].points.length) {
-                snake.increaseLength(5);
-                this.destroyed = true;
-                return;
+        if (this.obstacleCollision(obstacles)) {
+            console.log("Game Over!");
+        }
+    }
+    obstacleCollision(obstacles) {
+        for (const b of obstacles) {
+            if (AABBcollision(this.pos, this.size, b.pos, b.size)) {
+                return true;
             }
-            var index = floor(this.progress);
-            this.pos = snake.snakes[0].points[index].pos;
-            this.progress += 0.7;
         }
-        fill(200, 0, 0);
-        noStroke();
-        if (!this.eatenAndMoving) {
-            var wavyCoef = (this.swinging ? sin(frameCount / 20) * 7 : 0);
-            ellipse(this.pos.x - 4, this.pos.y + wavyCoef, 0.7 * this.size, 1.1 * this.size);
-            ellipse(this.pos.x + 4, this.pos.y + wavyCoef, 0.7 * this.size, 1.1 * this.size);
-            strokeWeight(5);
-            stroke(0, 255, 0);
-            line(this.pos.x, this.pos.y - 10 + wavyCoef, this.pos.x - 5, this.pos.y - 12 + wavyCoef);
-            line(this.pos.x, this.pos.y - 10 + wavyCoef, this.pos.x + 5, this.pos.y - 12 + wavyCoef);
+        return false;
+    }
+    draw() {
+        if (this.playerState == PlayerState.Jumping) {
+            if (this.vel.y < 0) {
+                this.animManager.show('jump', this.pos, this.size, 0);
+            }
+            else {
+                this.animManager.show('jump', this.pos, this.size, 1);
+            }
         }
-        else {
-            var newSize = map(this.progress, 0, snake.snakes[0].points.length, this.size, 7);
-            fill(100, 255, 0);
-            circle(this.pos.x, this.pos.y, newSize);
+        else if (this.playerState == PlayerState.Running) {
+            this.animManager.show('run', this.pos, this.size);
         }
-    };
-    return Apple;
-}());
-var snake;
-var apple;
+    }
+}
+let floorLevel = 100;
+let obstacleSpeed = 5;
+let score = 0;
+let player;
+let obstacles;
+let obstacleAnimManager;
 function setup() {
-    createCanvas(windowWidth, windowHeight);
-    snake = new GhostedSnake(width / 2 - 200, height / 2);
-    apple = new Apple(random(30, width - 30), random(30, height - 30));
+    createCanvas(800, 600);
+    let playerAnimManager = new AnimationManager();
+    playerAnimManager.load('run', './sprites/engineer/run.png', 8, 1, 8, createVector(0, 0), createVector(64, 112));
+    playerAnimManager.load('jump', './sprites/engineer/jump.png', 2, 1, 2, createVector(0, 0), createVector(64, 112));
+    obstacleAnimManager = new AnimationManager();
+    obstacleAnimManager.load('pterodactyl', './sprites/dino.png', 2, 1, 2, createVector(259, 0), createVector(92, 90));
+    obstacleAnimManager.set_speed(18);
+    player = new Player(createVector(width / 8, height / 2), createVector(50, 100), playerAnimManager);
+    obstacles = new Array();
 }
 function draw() {
-    background(0, 150);
-    snake.update();
-    if (!apple.destroyed) {
-        apple.draw();
-    }
-    else {
-        apple = new Apple(random(30, width - 30), random(30, height - 30));
+    background(0);
+    player.update(obstacles);
+    player.draw();
+    drawFloor();
+    obstacleCleaner(obstacles);
+    obstacles.forEach(obs => {
+        obs.update(obstacleSpeed);
+        obs.draw();
+    });
+    updateAndDrawScore();
+    spawnSometimes();
+}
+function spawnSometimes() {
+    if (obstacles.length > 0)
+        return;
+    let obstacleSize = 100;
+    let obstacleType = random() > 0.5 ? "high" : "low";
+    let obstacleHeight = obstacleType == "high" ? height / 2 : (height - floorLevel) - obstacleSize;
+    let randomValue = random();
+    let doSpawn = randomValue > 0.99;
+    if (doSpawn) {
+        let obstacle = new Obstacle(width + 100, obstacleHeight, obstacleSize, obstacleSize, obstacleAnimManager);
+        obstacles.push(obstacle);
     }
 }
-
-function keyPressed() {
-    if (key === " ") {
-        ss = [];
-        for (let i = 0;i<random(1, 15);i++) ss.push(new Point(random(30, width - 30), random(30, height - 30)))
-        snake.childSnakes.push(new Snake(0, 0, ss));
+function drawFloor() {
+    stroke(220);
+    line(0, height - floorLevel, width, height - floorLevel);
+}
+function obstacleCleaner(obstacles) {
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+        if (obstacles[i].pos.x + obstacles[i].size.x < 0) {
+            obstacles.splice(i, 1);
+        }
     }
 }
-
-function mouseClicked(){
-
-    if (mouseY > height/16) return;
-
-    ss = [];
-    for (let i = 0;i<random(1, 15);i++) ss.push(new Point(random(30, width - 30), random(30, height - 30)))
-    snake.childSnakes.push(new Snake(0, 0, ss));
+function mousePressed() {
+    if (player.playerState == PlayerState.Running)
+        player.jump();
 }
-
+function AABBcollision(pos1, size1, pos2, size2) {
+    return pos1.x + size1.x > pos2.x &&
+        pos1.y + size1.y > pos2.y &&
+        pos1.x < pos2.x + size2.x &&
+        pos1.y < pos2.y + size2.y;
+}
+function updateAndDrawScore() {
+    score += 1;
+    if (score % 1000 === 0) {
+        obstacleSpeed += 1;
+    }
+    textSize(25);
+    noStroke();
+    fill(0, 200, 0);
+    textFont("ComicSansMS");
+    text(`Score: ${floor(score / 10)}`, 0, 25);
+}
 //# sourceMappingURL=build.js.map
