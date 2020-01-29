@@ -28,12 +28,12 @@ function setup() {
     img.loadPixels();
     textGraphics.background(255);
     textGraphics.image(img, 0, 0, textGraphicsHeight, textGraphicsHeight);
-    textGraphics.text("Привет", textGraphicsHeight, 0);
+    textGraphics.text("(>‿◠)✌", textGraphicsHeight, 0);
     textGraphics.loadPixels();
     table = create_table(table_rows, table_cols);
     next_table = create_table(table_rows, table_cols);
     random_cells();
-    textField = createInput("LOL");
+    textField = createInput("ЛОЛ");
     textField.input(function (e) {
         changeText(textField.value());
     });
