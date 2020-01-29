@@ -156,7 +156,6 @@ function next_turn() {
 function keyPressed(e) {
     if (key === ' ') {
         floodThem = !floodThem;
-        e.preventDefault();
     }
     else if (key == 'r') {
         changeText(key);
