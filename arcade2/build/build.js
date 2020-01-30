@@ -1,5 +1,5 @@
 class ObjectAnimation {
-    constructor(sprite_sheet_path, cols_num, rows_num, frames_num, frame_pos, frame_size, col_offset = 0, row_offset = 0) {
+    constructor(sprite_sheet_path, cols_num, rows_num, frames_num, frame_pos, frame_size, col_offset = 0, row_offset = 0, speed = 4) {
         this.img = loadImage(sprite_sheet_path);
         this.colsNumber = cols_num;
         this.rowsNumber = rows_num;
@@ -9,6 +9,7 @@ class ObjectAnimation {
         this.frameSize = frame_size;
         this.columnOffset = col_offset;
         this.rowOffset = row_offset;
+        this.speed = speed;
     }
     draw(pos, size, is_flipped) {
         push();
@@ -40,17 +41,16 @@ class AnimationManager {
         this.anims = {};
         this.paused = false;
         this.is_flipped = false;
-        this.speed = 5;
     }
-    load(name, sprite_sheet_path, cols_num, rows_num, frames_num, frame_pos, frame_size) {
-        let new_animation = new ObjectAnimation(sprite_sheet_path, cols_num, rows_num, frames_num, frame_pos, frame_size);
+    load(name, sprite_sheet_path, cols_num, rows_num, frames_num, frame_pos, frame_size, speed = 4) {
+        let new_animation = new ObjectAnimation(sprite_sheet_path, cols_num, rows_num, frames_num, frame_pos, frame_size, speed);
         this.anims[name] = new_animation;
     }
     show(name, pos, size, frame = undefined) {
         if (frame != undefined)
             this.anims[name].currentFrame = frame;
         this.anims[name].draw(pos, size, this.is_flipped);
-        if (!this.paused && frameCount % this.speed == 0)
+        if (!this.paused && frameCount % this.anims[name].speed == 0)
             this.anims[name].next_frame();
     }
     play() {
@@ -59,8 +59,99 @@ class AnimationManager {
     flip() {
         this.is_flipped = !this.is_flipped;
     }
-    set_speed(speed) {
-        this.speed = speed;
+    set_speed(name, speed) {
+        this.anims[name].speed = speed;
+    }
+}
+var AnimationType;
+(function (AnimationType) {
+    AnimationType[AnimationType["LOOPABLE"] = 0] = "LOOPABLE";
+    AnimationType[AnimationType["SINGULAR"] = 1] = "SINGULAR";
+})(AnimationType || (AnimationType = {}));
+class NewAnimation {
+    constructor(animationInfoJson, animationSpritesheetImage) {
+        this.hPadding = 0;
+        this.callback = null;
+        this.initAnimation(animationInfoJson, animationSpritesheetImage);
+    }
+    initAnimation(animationInfoJson, animationSpritesheetImage) {
+        this.spritesheet = animationSpritesheetImage;
+        this.frames = animationInfoJson.frames;
+        this.length = animationInfoJson.frames.length;
+        this.frameCount = 0;
+        this.speed = 4;
+        this.type = AnimationType.LOOPABLE;
+    }
+    draw(x, y, w, h, isFlipped) {
+        let source = this.frames[this.frameCount].frame;
+        push();
+        if (isFlipped) {
+            scale(-1, 1);
+            translate(-w, 0);
+        }
+        x *= isFlipped ? -1 : 1;
+        image(this.spritesheet, x + this.hPadding, y, w - this.hPadding, h, source.x, source.y, source.w, source.h);
+        pop();
+    }
+    nextFrame() {
+        if (this.type == AnimationType.LOOPABLE) {
+            this.frameCount += 1;
+            this.frameCount %= this.length;
+        }
+        else if (this.type == AnimationType.SINGULAR) {
+            if (this.frameCount < this.length - 1) {
+                this.frameCount += 1;
+            }
+            else if (this.callback != null) {
+                this.callback(this);
+            }
+        }
+    }
+}
+class NewAnimationManager {
+    constructor() {
+        this.animations = {};
+        this.isFlipped = false;
+    }
+    addAnimation(name, spritesheetInfo, spritesheetImage) {
+        this.animations[name] = new NewAnimation(spritesheetInfo, spritesheetImage);
+    }
+    draw(name, x, y, w, h) {
+        let animation = this.animations[name];
+        animation.draw(x, y, w, h, this.isFlipped);
+        if (frameCount % animation.speed == 0) {
+            animation.nextFrame();
+        }
+    }
+    playCurrentAnimation(x, y, w, h) {
+        this.draw(this.currentAnimation, x, y, w, h);
+    }
+    setSpeed(name, speed) {
+        this.animations[name].speed = ceil(speed);
+    }
+    setAnimationType(name, type) {
+        this.animations[name].type = type;
+    }
+    resetAnimation(name) {
+        this.animations[name].frameCount = 0;
+    }
+    setHPadding(name, hPadding) {
+        this.animations[name].hPadding = hPadding;
+    }
+    setCurrentAnimation(name) {
+        this.currentAnimation = name;
+    }
+    save() {
+        return {
+            animations: Object.assign({}, this.animations),
+            isFlipped: this.isFlipped,
+            currentAnimation: this.currentAnimation
+        };
+    }
+    load(saveState) {
+        this.animations = Object.assign({}, saveState.animations),
+            this.isFlipped = saveState.isFlipped,
+            this.currentAnimation = saveState.currentAnimation;
     }
 }
 var playerState;
@@ -82,16 +173,18 @@ var playerMoving;
 })(playerMoving || (playerMoving = {}));
 class Player {
     constructor(anim) {
-        this.pos = createVector(width / 2, height * 2 / 3);
+        this.collisionHPadding = 14;
+        this.collisionHappenedLastTurn = false;
+        this.collisionHappenedSecondFromLastTurn = false;
+        this.pos = createVector(width * 3 / 5, height);
         this.vel = createVector(0, 0);
         this.acc = createVector(0, 0.5);
         this.size = createVector(tileWidth * 2 - 5, tileHeight * 2);
         this.moving = playerMoving.None;
         this.direction = playerDirection.Right;
         this.animState = playerState.Falling;
-        this.type = 'PLAYER';
         this.animManager = anim;
-        this.walkSpeed = 6;
+        this.runSpeed = 6;
         this.jumpVelocity = 15;
         this.doubleJump = true;
     }
@@ -99,62 +192,68 @@ class Player {
         this.moving_routine(map);
     }
     draw() {
-        if (this.vel.x > 0) {
-            this.animManager.is_flipped = false;
+        if (this.moving == playerMoving.Left) {
+            this.animManager.isFlipped = true;
         }
-        if (this.vel.x < 0) {
-            this.animManager.is_flipped = true;
+        else if (this.moving == playerMoving.Right) {
+            this.animManager.isFlipped = false;
         }
         if (this.animState == playerState.Jumping) {
-            if (this.vel.y < 0) {
-                this.animManager.show('jump', this.pos, this.size, 0);
-            }
-            else {
-                this.animManager.show('jump', this.pos, this.size, 1);
-            }
+            this.animManager.setCurrentAnimation('jump');
         }
-        else if (this.vel.x > 0) {
-            this.animManager.is_flipped = false;
-            this.animManager.show('run', this.pos, this.size);
+        else if (this.animState == playerState.Falling) {
+            this.animManager.setCurrentAnimation('fall');
         }
-        else if (this.vel.x == 0)
-            this.animManager.show('idle', this.pos, this.size);
-        else {
-            this.animManager.is_flipped = true;
-            this.animManager.show('run', this.pos, this.size);
+        else if (this.moving == playerMoving.Right || this.vel.x > 0) {
+            this.animManager.setCurrentAnimation('run');
         }
+        else if (this.moving == playerMoving.None && this.vel.x == 0)
+            this.animManager.setCurrentAnimation('idle');
+        else if (this.moving == playerMoving.Left || this.vel.x < 0) {
+            this.animManager.setCurrentAnimation('run');
+        }
+        this.animManager.playCurrentAnimation(this.pos.x, this.pos.y, this.size.x, this.size.y);
+        this.animManager.setSpeed('run', 2 / abs(this.vel.x));
     }
     moving_routine(map) {
         this.vel.add(this.acc);
         this.pos.x += this.vel.x;
         this.collision_detection(map, 'x');
         this.pos.y += this.vel.y;
-        this.collision_detection(map, 'y');
-        if (this.moving == playerMoving.Right) {
-            this.vel.x = +this.walkSpeed;
+        let collisionHappened = this.collision_detection(map, 'y');
+        if (!isRewinding) {
+            this.collisionHappenedSecondFromLastTurn = this.collisionHappenedLastTurn;
+            this.collisionHappenedLastTurn = collisionHappened;
+            if (!this.collisionHappenedLastTurn && !this.collisionHappenedSecondFromLastTurn) {
+                if (this.animState == playerState.Walking)
+                    this.animState = playerState.Falling;
+            }
         }
-        else if (this.moving == playerMoving.Left) {
-            this.vel.x = -this.walkSpeed;
-        }
-        else if (this.moving == playerMoving.None) {
-            this.vel.x = 0;
-        }
+        this.vel.x = constrain(this.vel.x, -this.runSpeed, this.runSpeed);
         this.vel.y = constrain(this.vel.y, -10, 10);
     }
     collision_detection(map, axis) {
-        let leftTile = floor(this.pos.x / tileWidth);
-        let rightTile = floor((this.pos.x + this.size.x) / tileWidth);
+        let leftTile = floor((this.pos.x + this.collisionHPadding) / tileWidth);
+        let rightTile = floor((this.pos.x + this.size.x - this.collisionHPadding) / tileWidth);
         let topTile = floor(this.pos.y / tileHeight);
         let bottomTile = floor((this.pos.y + this.size.y) / tileHeight);
+        let collisionHappened = false;
         for (let tileY = topTile; tileY <= bottomTile; tileY++) {
             for (let tileX = leftTile; tileX <= rightTile; tileX++) {
                 if (map[tileY] != undefined && this.isBlockStopable(map[tileY][tileX])) {
                     if (axis == 'y') {
                         if (this.vel.y >= 0) {
+                            collisionHappened = true;
                             this.pos.y = tileY * tileHeight - this.size.y - 1;
                             this.animState = playerState.Walking;
                             this.vel.y = 0;
                             this.doubleJump = true;
+                            if (this.moving == playerMoving.None) {
+                                if (abs(this.vel.x) < 0.01)
+                                    this.vel.x = 0;
+                                else
+                                    this.vel.x /= 2;
+                            }
                         }
                         else {
                             this.pos.y = (tileY + 1) * tileHeight + 1;
@@ -163,45 +262,86 @@ class Player {
                     }
                     else if (axis == 'x') {
                         if (this.vel.x > 0) {
-                            this.pos.x = tileX * tileWidth - this.size.x - 1;
+                            this.pos.x = tileX * tileWidth - (this.size.x - this.collisionHPadding) - 1;
                             this.vel.x = 0;
                         }
                         else if (this.vel.x < 0) {
-                            this.pos.x = (tileX + 1) * tileWidth + 1;
+                            this.pos.x = (tileX + 1) * tileWidth + 1 - this.collisionHPadding;
                             this.vel.x = 0;
                         }
                     }
                 }
             }
         }
+        return collisionHappened;
     }
     isBlockStopable(num) {
-        let stopBlockNums = [196, 474, 475, 200, 709, 710, 709, 710, 711, 713, 714, 709, 710, 711, 717, 709, 710, 711, 729, 730, 731,
+        let stopBlockNums = [
+            196, 474, 475, 200, 709, 710, 709, 710, 711, 713, 714, 709, 710, 711, 717, 709, 710, 711, 729, 730, 731,
             468, 469, 470, 526, 527, 528,
-            119, 120, 121, 122, 123, 124, 125];
+            119, 120, 121, 122, 123, 124, 125
+        ];
         return stopBlockNums.find((e) => e == num) != undefined;
+    }
+    jump() {
+        if (this.animState == playerState.Jumping || this.animState == playerState.Falling) {
+            this.doubleJump = false;
+        }
+        this.vel.y = -this.jumpVelocity;
+        this.animState = playerState.Jumping;
+        this.animManager.resetAnimation('jump');
+        this.animManager.setCurrentAnimation('jump');
     }
     keyPressed(e) {
         if (keyCode == LEFT_ARROW) {
             this.moving = playerMoving.Left;
+            this.animManager.resetAnimation('run');
+            this.acc.x = -0.2;
         }
         else if (keyCode == RIGHT_ARROW) {
             this.moving = playerMoving.Right;
+            this.animManager.resetAnimation('run');
+            this.acc.x = 0.2;
         }
         if (keyCode == UP_ARROW && (this.animState == playerState.Walking || this.doubleJump)) {
-            if (this.animState == playerState.Jumping)
-                this.doubleJump = false;
-            this.vel.y = -this.jumpVelocity;
-            this.animState = playerState.Jumping;
+            this.jump();
         }
     }
     keyReleased(e) {
         if (keyCode == LEFT_ARROW && this.moving == playerMoving.Left) {
             this.moving = playerMoving.None;
+            this.acc.x = 0;
         }
         else if (keyCode == RIGHT_ARROW && this.moving == playerMoving.Right) {
             this.moving = playerMoving.None;
+            this.acc.x = 0;
         }
+        else if (key == ' ') {
+            this.moving = playerMoving.None;
+            this.acc.x = 0;
+        }
+    }
+    saveFrame() {
+        return {
+            position: this.pos.copy(),
+            velocity: this.vel.copy(),
+            acc: this.acc.copy(),
+            size: this.size.copy(),
+            animManager: this.animManager.save(),
+            animState: this.animState,
+            moving: this.moving,
+            direction: this.direction,
+        };
+    }
+    loadFrame(frame) {
+        this.pos = frame.position.copy(),
+            this.vel = frame.velocity.copy(),
+            this.acc = frame.acc.copy(),
+            this.size = frame.size.copy(),
+            this.animManager.load(frame.animManager),
+            this.animState = frame.animState,
+            this.moving = frame.moving,
+            this.direction = frame.direction;
     }
 }
 const spritesheetPath = "./assets/tileset.png";
@@ -210,12 +350,30 @@ const cloudPath = "./assets/clouds.png";
 const farGroundsPath = "./assets/far-grounds.png";
 const skyPath = "./assets/sky.png";
 const seaPath = "./assets/sea.png";
+const braidPath = "./assets/braid.png";
+const braidIdleImagePath = "./assets/braidIdle/spritesheet.png";
+const braidIdleInfoPath = "./assets/braidIdle/spritesheet.json";
+const braidRunImagePath = "./assets/braidRun/spritesheet.png";
+const braidRunInfoPath = "./assets/braidRun/spritesheet.json";
+const braidJumpImagePath = "./assets/braidJump/spritesheet.png";
+const braidJumpInfoPath = "./assets/braidJump/spritesheet.json";
+const braidFallImagePath = "./assets/braidFall/spritesheet.png";
+const braidFallInfoPath = "./assets/braidFall/spritesheet.json";
+let braidIdleImage;
+let braidIdleInfo;
+let braidRunImage;
+let braidRunInfo;
+let braidJumpImage;
+let braidJumpInfo;
+let braidFallImage;
+let braidFallInfo;
 let spritesheetImage;
 let mapArray;
 let cloudImage;
 let farGroundsImage;
 let skyImage;
 let seaImage;
+let braidImage;
 let mapRows;
 let mapCols;
 let spritesheetTileWidth = 64;
@@ -232,28 +390,75 @@ function preload() {
     farGroundsImage = loadImage(farGroundsPath);
     skyImage = loadImage(skyPath);
     seaImage = loadImage(seaPath);
+    braidImage = loadImage(braidPath);
+    braidIdleImage = loadImage(braidIdleImagePath);
+    braidIdleInfo = loadJSON(braidIdleInfoPath);
+    braidRunImage = loadImage(braidRunImagePath);
+    braidRunInfo = loadJSON(braidRunInfoPath);
+    braidJumpImage = loadImage(braidJumpImagePath);
+    braidJumpInfo = loadJSON(braidJumpInfoPath);
+    braidFallImage = loadImage(braidFallImagePath);
+    braidFallInfo = loadJSON(braidFallInfoPath);
 }
-let animManager;
+let newAnimationManager;
 let player;
 let cameraPos;
+let gameStates = [];
+let isRewinding = false;
 function setup() {
     createCanvas(800, 600);
     mapArray = loadMap(mapStrings);
-    animManager = new AnimationManager();
-    animManager.load('run', './sprites/engineer/run.png', 8, 1, 8, createVector(0, 0), createVector(64, 112));
-    animManager.load('idle', './sprites/engineer/idle.png', 9, 1, 9, createVector(0, 0), createVector(64, 112));
-    animManager.load('jump', './sprites/engineer/jump.png', 2, 1, 2, createVector(0, 0), createVector(64, 112));
-    player = new Player(animManager);
+    newAnimationManager = new NewAnimationManager();
+    newAnimationManager.addAnimation('idle', braidIdleInfo, braidIdleImage);
+    newAnimationManager.setHPadding('idle', 18);
+    newAnimationManager.addAnimation('fall', braidFallInfo, braidFallImage);
+    newAnimationManager.addAnimation('jump', braidJumpInfo, braidJumpImage);
+    newAnimationManager.setAnimationType('jump', AnimationType.SINGULAR);
+    newAnimationManager.animations['jump'].callback = () => {
+        player.animState = playerState.Falling;
+    };
+    newAnimationManager.addAnimation('run', braidRunInfo, braidRunImage);
+    newAnimationManager.setSpeed('run', 2);
+    player = new Player(newAnimationManager);
     cameraPos = createVector(width / 2 - player.pos.x, height / 2 - player.pos.y);
 }
 function draw() {
     background(220);
     drawBackground();
-    cameraPos.lerp(createVector(-player.pos.x + width / 2 - (width / 10 * (player.animManager.is_flipped ? -1 : 1.5)), height / 8 - player.pos.y + height / 2), 0.05);
+    cameraPos.lerp(createVector(-player.pos.x + width / 2 - (width / 10 * (player.animManager.isFlipped ? -1 : 1.5)), height / 8 - player.pos.y + height / 2), 0.05);
+    push();
     translate(cameraPos);
     player.update(mapArray);
     player.draw();
     drawMap();
+    pop();
+    rewindingFacilities();
+}
+function rewindingFacilities() {
+    isRewinding = false;
+    if (frameCount % 1 == 0 && keyIsPressed && key == ' ') {
+        let lastFrame = gameStates.pop();
+        if (lastFrame != undefined) {
+            isRewinding = true;
+            player.loadFrame(lastFrame);
+        }
+    }
+    if (frameCount % 2 == 0 && !isRewinding) {
+        gameStates.push(player.saveFrame());
+    }
+    if (isRewinding) {
+        background(0, 100);
+        noStroke();
+        fill(220, 100);
+        let p1 = createVector(width / 6, height / 4);
+        let p2 = createVector(width / 6, height - height / 4);
+        let p3 = createVector(width / 2, height / 2);
+        let p4 = createVector(width / 2, height / 4);
+        let p5 = createVector(width / 2, height - height / 4);
+        let p6 = createVector(width - width / 6, height / 2);
+        triangle(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
+        triangle(p4.x, p4.y, p5.x, p5.y, p6.x, p6.y);
+    }
 }
 function drawBackground() {
     for (let i = 0; i < ceil(width / skyImage.width); i++) {

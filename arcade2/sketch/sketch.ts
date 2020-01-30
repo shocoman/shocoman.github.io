@@ -4,6 +4,26 @@ const cloudPath = "./assets/clouds.png";
 const farGroundsPath = "./assets/far-grounds.png";
 const skyPath = "./assets/sky.png";
 const seaPath = "./assets/sea.png";
+const braidPath = "./assets/braid.png";
+
+const braidIdleImagePath = "./assets/braidIdle/spritesheet.png";
+const braidIdleInfoPath = "./assets/braidIdle/spritesheet.json";
+const braidRunImagePath = "./assets/braidRun/spritesheet.png";
+const braidRunInfoPath = "./assets/braidRun/spritesheet.json";
+const braidJumpImagePath = "./assets/braidJump/spritesheet.png";
+const braidJumpInfoPath = "./assets/braidJump/spritesheet.json";
+const braidFallImagePath = "./assets/braidFall/spritesheet.png";
+const braidFallInfoPath = "./assets/braidFall/spritesheet.json";
+
+let braidIdleImage: p5.Image;
+let braidIdleInfo: any;
+let braidRunImage: p5.Image;
+let braidRunInfo: any;
+let braidJumpImage: p5.Image;
+let braidJumpInfo: any;
+let braidFallImage: p5.Image;
+let braidFallInfo: any;
+
 
 let spritesheetImage: p5.Image;
 let mapArray: number[][];
@@ -11,6 +31,7 @@ let cloudImage: p5.Image;
 let farGroundsImage: p5.Image;
 let skyImage: p5.Image;
 let seaImage: p5.Image;
+let braidImage: p5.Image;
 
 let mapRows: number;
 let mapCols: number;
@@ -31,67 +52,126 @@ function preload() {
     farGroundsImage = loadImage(farGroundsPath);
     skyImage = loadImage(skyPath);
     seaImage = loadImage(seaPath);
+    braidImage = loadImage(braidPath);
+
+    braidIdleImage = loadImage(braidIdleImagePath);
+    braidIdleInfo = loadJSON(braidIdleInfoPath);
+    braidRunImage = loadImage(braidRunImagePath);
+    braidRunInfo = loadJSON(braidRunInfoPath);
+    braidJumpImage = loadImage(braidJumpImagePath);
+    braidJumpInfo = loadJSON(braidJumpInfoPath);
+    braidFallImage = loadImage(braidFallImagePath);
+    braidFallInfo = loadJSON(braidFallInfoPath);
 }
 
-let animManager: AnimationManager;
 
+let newAnimationManager: NewAnimationManager;
 let player: Player;
 
-// let cameraAcc: p5.Vector;
-// let cameraVel: p5.Vector;
 let cameraPos: p5.Vector;
+
+let gameStates: any = [];
+let isRewinding = false;
 
 function setup() {
     createCanvas(800, 600);
-    // frameRate(15);
+    // frameRate(30);
 
     mapArray = loadMap(mapStrings);
 
-    animManager = new AnimationManager();
-    animManager.load('run', './sprites/engineer/run.png', 8, 1, 8, createVector(0, 0), createVector(64, 112));
-    animManager.load('idle', './sprites/engineer/idle.png', 9, 1, 9, createVector(0, 0), createVector(64, 112));
-    animManager.load('jump', './sprites/engineer/jump.png', 2, 1, 2, createVector(0, 0), createVector(64, 112));
+    newAnimationManager = new NewAnimationManager();
 
-    player = new Player(animManager);
+    newAnimationManager.addAnimation('idle', braidIdleInfo, braidIdleImage);
+    newAnimationManager.setHPadding('idle', 18);
+
+    newAnimationManager.addAnimation('fall', braidFallInfo, braidFallImage);
+
+    newAnimationManager.addAnimation('jump', braidJumpInfo, braidJumpImage);
+    newAnimationManager.setAnimationType('jump', AnimationType.SINGULAR);
+    newAnimationManager.animations['jump'].callback = () => {
+        player.animState = playerState.Falling;
+    }
 
 
+    newAnimationManager.addAnimation('run', braidRunInfo, braidRunImage);
+    newAnimationManager.setSpeed('run', 2);
 
-    // cameraAcc = createVector(width / 2 - player.pos.x, height / 2 - player.pos.y);
-    // cameraAcc.mult(0.0001);
-    // cameraVel = createVector(0, 0);
+    player = new Player(newAnimationManager);
+
+
     cameraPos = createVector(width / 2 - player.pos.x, height / 2 - player.pos.y);
 }
 
 
+
+
 function draw() {
     background(220);
-
     drawBackground();
 
-
     // move "camera"
-    cameraPos.lerp(createVector(-player.pos.x + width / 2 - (width / 10 * (player.animManager.is_flipped ? -1 : 1.5)), height / 8 - player.pos.y + height / 2), 0.05);
+    cameraPos.lerp(createVector(-player.pos.x + width / 2 - (width / 10 * (player.animManager.isFlipped ? -1 : 1.5)), height / 8 - player.pos.y + height / 2), 0.05);
+    push();
     translate(cameraPos);
+
 
     player.update(mapArray);
     player.draw();
 
     drawMap();
 
+    pop();
+
+    
+    rewindingFacilities();
+
+
+}
+
+function rewindingFacilities(){
+    isRewinding = false;
+    if (frameCount % 1 == 0 && keyIsPressed && key == ' ') {
+        let lastFrame = gameStates.pop();
+        if (lastFrame != undefined) {
+            isRewinding = true;
+            player.loadFrame(lastFrame);
+        }
+    }
+
+
+    if (frameCount % 2 == 0 && !isRewinding) {
+        gameStates.push(player.saveFrame());
+    } 
+
+
+    if (isRewinding) {
+        background(0, 100);
+
+        noStroke();
+        fill(220, 100);
+        
+        let p1 = createVector(width/6, height/4);
+        let p2 = createVector(width/6, height - height/4);
+        let p3 = createVector(width/2, height/2);
+        let p4 = createVector(width/2, height/4);
+        let p5 = createVector(width/2, height - height/4);
+        let p6 = createVector(width - width/6, height/2);
+
+        triangle(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
+        triangle(p4.x, p4.y, p5.x, p5.y, p6.x, p6.y);
+    }
 }
 
 function drawBackground() {
-
-
     // sky
     for (let i = 0; i < ceil(width / skyImage.width); i++) {
-        image(skyImage, i * skyImage.width, 0, skyImage.width, skyImage.height*1.5);
+        image(skyImage, i * skyImage.width, 0, skyImage.width, skyImage.height * 1.5);
     }
 
     // sea
-    let seaHeight = height - seaImage.height*1;
+    let seaHeight = height - seaImage.height * 1;
     for (let i = 0; i < ceil(width / seaImage.width); i++) {
-        image(seaImage, i * seaImage.width, seaHeight, seaImage.width*1, seaImage.height * 1);
+        image(seaImage, i * seaImage.width, seaHeight, seaImage.width * 1, seaImage.height * 1);
     }
 
     // cloud(s)
@@ -142,6 +222,7 @@ function loadMap(mapStrings: string[]): number[][] {
 
     return tileMap;
 }
+
 
 function keyPressed(e: KeyboardEvent) {
     player.keyPressed(e);

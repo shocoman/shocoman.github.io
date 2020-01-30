@@ -9,9 +9,9 @@ class ObjectAnimation {
     columnOffset: number;
     rowOffset: number;
     isPaused: boolean;
+    speed: number;
 
-
-    constructor(sprite_sheet_path: string, cols_num: number, rows_num: number, frames_num: number, frame_pos: p5.Vector, frame_size: p5.Vector, col_offset = 0, row_offset = 0) {
+    constructor(sprite_sheet_path: string, cols_num: number, rows_num: number, frames_num: number, frame_pos: p5.Vector, frame_size: p5.Vector, col_offset = 0, row_offset = 0, speed = 4) {
         this.img = loadImage(sprite_sheet_path);
 
         this.colsNumber = cols_num;
@@ -24,6 +24,8 @@ class ObjectAnimation {
         this.frameSize = frame_size;
         this.columnOffset = col_offset;
         this.rowOffset = row_offset;
+
+        this.speed = speed;
     }
 
     draw(pos: p5.Vector, size: p5.Vector, is_flipped: boolean) {
@@ -58,7 +60,6 @@ class ObjectAnimation {
     get_current_row() {
         return int(this.currentFrame / this.colsNumber);
     }
-
 }
 
 
@@ -66,17 +67,17 @@ class AnimationManager {
     anims: Record<string, ObjectAnimation>;
     paused: boolean;
     is_flipped: boolean;
-    speed: number;
+
 
     constructor() {
         this.anims = {};
         this.paused = false;
         this.is_flipped = false;
-        this.speed = 5;
+        
     }
 
-    load(name: string, sprite_sheet_path: string, cols_num: number, rows_num: number, frames_num: number, frame_pos: p5.Vector, frame_size: p5.Vector) {
-        let new_animation = new ObjectAnimation(sprite_sheet_path, cols_num, rows_num, frames_num, frame_pos, frame_size);
+    load(name: string, sprite_sheet_path: string, cols_num: number, rows_num: number, frames_num: number, frame_pos: p5.Vector, frame_size: p5.Vector, speed: number = 4) {
+        let new_animation = new ObjectAnimation(sprite_sheet_path, cols_num, rows_num, frames_num, frame_pos, frame_size, speed);
         this.anims[name] = new_animation;
     }
 
@@ -84,7 +85,7 @@ class AnimationManager {
         if (frame != undefined) this.anims[name].currentFrame = frame;
         this.anims[name].draw(pos, size, this.is_flipped);
 
-        if (!this.paused && frameCount % this.speed == 0)
+        if (!this.paused && frameCount % this.anims[name].speed == 0)
             this.anims[name].next_frame();
     }
 
@@ -96,7 +97,8 @@ class AnimationManager {
         this.is_flipped = !this.is_flipped;
     }
 
-    set_speed(speed: number) {
-        this.speed = speed;
+    
+    set_speed(name: string, speed: number) {
+        this.anims[name].speed = speed;
     }
 }
