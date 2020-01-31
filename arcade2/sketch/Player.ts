@@ -22,7 +22,7 @@ class Player {
     acc: p5.Vector;
     size: p5.Vector;
 
-    animManager: NewAnimationManager;
+    animManager: AnimationManager;
 
     animState: playerState;
     moving: playerMoving;
@@ -38,9 +38,9 @@ class Player {
     collisionHappenedLastTurn: boolean = false;
     collisionHappenedSecondFromLastTurn: boolean = false;
 
-    constructor(anim: NewAnimationManager) {
+    constructor(anim: AnimationManager) {
 
-        this.pos = createVector(width * 3 / 5, height);
+        this.pos = createVector(width * 1 / 5, height);
         this.vel = createVector(0, 0);
         this.acc = createVector(0, 0.5);
         this.size = createVector(tileWidth * 2 - 5, tileHeight * 2);
@@ -57,7 +57,6 @@ class Player {
     }
 
     update(map: number[][]) {
-
         this.moving_routine(map);
     }
 
@@ -70,19 +69,14 @@ class Player {
         }
 
         if (this.animState == playerState.Jumping) {
-            // this.animManager.draw('jump', this.pos.x, this.pos.y, this.size.x, this.size.y);
             this.animManager.setCurrentAnimation('jump');
         } else if (this.animState == playerState.Falling) {
             this.animManager.setCurrentAnimation('fall');
         } else if (this.moving == playerMoving.Right || this.vel.x > 0) {
-            // this.animManager.draw('run', this.pos.x, this.pos.y, this.size.x, this.size.y);
             this.animManager.setCurrentAnimation('run');
         } else if (this.moving == playerMoving.None && this.vel.x == 0)
-            // this.animManager.draw('idle', this.pos.x, this.pos.y, this.size.x, this.size.y);
             this.animManager.setCurrentAnimation('idle');
         else if (this.moving == playerMoving.Left || this.vel.x < 0) {
-            // this.animManager.draw('run', this.pos.x, this.pos.y, this.size.x, this.size.y);
-
             this.animManager.setCurrentAnimation('run');
         }
 
@@ -123,12 +117,13 @@ class Player {
 
         for (let tileY = topTile; tileY <= bottomTile; tileY++) {
             for (let tileX = leftTile; tileX <= rightTile; tileX++) {
-                if (map[tileY] != undefined && this.isBlockStopable(map[tileY][tileX])) {
+                if (isTileCollidable(tileY, tileX)) {
                     if (axis == 'y') {
                         if (this.vel.y >= 0) {
                             collisionHappened = true;
 
                             this.pos.y = tileY * tileHeight - this.size.y - 1;
+
                             this.animState = playerState.Walking;
                             this.vel.y = 0;
                             this.doubleJump = true;
@@ -138,7 +133,7 @@ class Player {
                                 if (abs(this.vel.x) < 0.01)
                                     this.vel.x = 0;
                                 else
-                                    this.vel.x /= 2;
+                                    this.vel.x /= 4;
                             }
                         } else {
                             this.pos.y = (tileY + 1) * tileHeight + 1;
@@ -160,15 +155,6 @@ class Player {
         return collisionHappened;
     }
 
-
-    isBlockStopable(num: number): boolean {
-        let stopBlockNums = [
-            196, 474, 475, 200, 709, 710, 709, 710, 711, 713, 714, 709, 710, 711, 717, 709, 710, 711, 729, 730, 731,
-            468, 469, 470, 526, 527, 528,
-            119, 120, 121, 122, 123, 124, 125];
-
-        return stopBlockNums.find((e: number) => e == num) != undefined;
-    }
 
     jump() {
         if (this.animState == playerState.Jumping || this.animState == playerState.Falling) {
@@ -231,15 +217,15 @@ class Player {
     }
 
     loadFrame(frame: any) {
-        this.pos = frame.position.copy(),
-            this.vel = frame.velocity.copy(),
-            this.acc = frame.acc.copy(),
-            this.size = frame.size.copy(),
+        this.pos = frame.position.copy();
+        this.vel = frame.velocity.copy();
+        this.acc = frame.acc.copy();
+        this.size = frame.size.copy();
 
-            this.animManager.load(frame.animManager),
+        this.animManager.load(frame.animManager);
 
-            this.animState = frame.animState,
-            this.moving = frame.moving,
-            this.direction = frame.direction
+        this.animState = frame.animState;
+        this.moving = frame.moving;
+        this.direction = frame.direction;
     }
 }

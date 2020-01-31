@@ -1,74 +1,9 @@
-class ObjectAnimation {
-    constructor(sprite_sheet_path, cols_num, rows_num, frames_num, frame_pos, frame_size, col_offset = 0, row_offset = 0, speed = 4) {
-        this.img = loadImage(sprite_sheet_path);
-        this.colsNumber = cols_num;
-        this.rowsNumber = rows_num;
-        this.numberOfFrames = frames_num;
-        this.currentFrame = 0;
-        this.framePos = frame_pos;
-        this.frameSize = frame_size;
-        this.columnOffset = col_offset;
-        this.rowOffset = row_offset;
-        this.speed = speed;
-    }
-    draw(pos, size, is_flipped) {
-        push();
-        if (is_flipped) {
-            scale(-1, 1);
-            translate(-size.x, 0);
-        }
-        image(this.img, pos.x * (is_flipped ? -1 : 1), pos.y, size.x, size.y, this.framePos.x + this.get_current_col() * (this.frameSize.x + this.columnOffset), this.framePos.y + this.get_current_row() * (this.frameSize.y + this.rowOffset), this.frameSize.x, this.frameSize.y);
-        pop();
-    }
-    next_frame() {
-        this.currentFrame += 1;
-        if (this.currentFrame >= this.numberOfFrames) {
-            this.currentFrame = 0;
-        }
-    }
-    play() {
-        this.isPaused = !this.isPaused;
-    }
-    get_current_col() {
-        return this.currentFrame % this.colsNumber;
-    }
-    get_current_row() {
-        return int(this.currentFrame / this.colsNumber);
-    }
-}
-class AnimationManager {
-    constructor() {
-        this.anims = {};
-        this.paused = false;
-        this.is_flipped = false;
-    }
-    load(name, sprite_sheet_path, cols_num, rows_num, frames_num, frame_pos, frame_size, speed = 4) {
-        let new_animation = new ObjectAnimation(sprite_sheet_path, cols_num, rows_num, frames_num, frame_pos, frame_size, speed);
-        this.anims[name] = new_animation;
-    }
-    show(name, pos, size, frame = undefined) {
-        if (frame != undefined)
-            this.anims[name].currentFrame = frame;
-        this.anims[name].draw(pos, size, this.is_flipped);
-        if (!this.paused && frameCount % this.anims[name].speed == 0)
-            this.anims[name].next_frame();
-    }
-    play() {
-        this.paused = !this.paused;
-    }
-    flip() {
-        this.is_flipped = !this.is_flipped;
-    }
-    set_speed(name, speed) {
-        this.anims[name].speed = speed;
-    }
-}
 var AnimationType;
 (function (AnimationType) {
     AnimationType[AnimationType["LOOPABLE"] = 0] = "LOOPABLE";
     AnimationType[AnimationType["SINGULAR"] = 1] = "SINGULAR";
 })(AnimationType || (AnimationType = {}));
-class NewAnimation {
+class CharacterAnimation {
     constructor(animationInfoJson, animationSpritesheetImage) {
         this.hPadding = 0;
         this.callback = null;
@@ -108,13 +43,13 @@ class NewAnimation {
         }
     }
 }
-class NewAnimationManager {
+class AnimationManager {
     constructor() {
         this.animations = {};
         this.isFlipped = false;
     }
     addAnimation(name, spritesheetInfo, spritesheetImage) {
-        this.animations[name] = new NewAnimation(spritesheetInfo, spritesheetImage);
+        this.animations[name] = new CharacterAnimation(spritesheetInfo, spritesheetImage);
     }
     draw(name, x, y, w, h) {
         let animation = this.animations[name];
@@ -149,9 +84,127 @@ class NewAnimationManager {
         };
     }
     load(saveState) {
-        this.animations = Object.assign({}, saveState.animations),
-            this.isFlipped = saveState.isFlipped,
-            this.currentAnimation = saveState.currentAnimation;
+        this.animations = Object.assign({}, saveState.animations);
+        this.isFlipped = saveState.isFlipped;
+        this.currentAnimation = saveState.currentAnimation;
+    }
+}
+var enemyState;
+(function (enemyState) {
+    enemyState[enemyState["Walking"] = 0] = "Walking";
+    enemyState[enemyState["Jumping"] = 1] = "Jumping";
+    enemyState[enemyState["Falling"] = 2] = "Falling";
+})(enemyState || (enemyState = {}));
+var enemyDirection;
+(function (enemyDirection) {
+    enemyDirection[enemyDirection["Left"] = 0] = "Left";
+    enemyDirection[enemyDirection["Right"] = 1] = "Right";
+})(enemyDirection || (enemyDirection = {}));
+var enemyMoving;
+(function (enemyMoving) {
+    enemyMoving[enemyMoving["None"] = 0] = "None";
+    enemyMoving[enemyMoving["Left"] = 1] = "Left";
+    enemyMoving[enemyMoving["Right"] = 2] = "Right";
+})(enemyMoving || (enemyMoving = {}));
+class Enemy {
+    constructor(anim) {
+        this.collisionHPadding = 14;
+        this.pos = createVector(width * 1 / 5, height);
+        this.vel = createVector(0, 0);
+        this.acc = createVector(0, 0.5);
+        this.size = createVector(tileWidth * 2 - 5, tileHeight * 2);
+        this.moving = enemyMoving.None;
+        this.direction = enemyDirection.Right;
+        this.animState = playerState.Falling;
+        this.animManager = anim;
+        this.runSpeed = 6;
+    }
+    update(map) {
+        this.moving_routine(map);
+    }
+    draw() {
+        if (this.moving == enemyMoving.Left) {
+            this.animManager.isFlipped = true;
+        }
+        else if (this.moving == enemyMoving.Right) {
+            this.animManager.isFlipped = false;
+        }
+        if (this.animState == playerState.Jumping) {
+            this.animManager.setCurrentAnimation('jump');
+        }
+        else if (this.animState == playerState.Falling) {
+            this.animManager.setCurrentAnimation('fall');
+        }
+        else if (this.moving == enemyMoving.Right || this.vel.x > 0) {
+            this.animManager.setCurrentAnimation('run');
+        }
+        else if (this.moving == enemyMoving.None && this.vel.x == 0)
+            this.animManager.setCurrentAnimation('idle');
+        else if (this.moving == enemyMoving.Left || this.vel.x < 0) {
+            this.animManager.setCurrentAnimation('run');
+        }
+        this.animManager.playCurrentAnimation(this.pos.x, this.pos.y, this.size.x, this.size.y);
+        this.animManager.setSpeed('run', 2 / abs(this.vel.x));
+    }
+    moving_routine(map) {
+        this.vel.add(this.acc);
+        this.pos.x += this.vel.x;
+        this.collision_detection(map, 'x');
+        this.pos.y += this.vel.y;
+        let collisionHappened = this.collision_detection(map, 'y');
+        if (!isRewinding) {
+            this.collisionHappenedSecondFromLastTurn = this.collisionHappenedLastTurn;
+            this.collisionHappenedLastTurn = collisionHappened;
+            if (!this.collisionHappenedLastTurn && !this.collisionHappenedSecondFromLastTurn) {
+                if (this.animState == playerState.Walking)
+                    this.animState = playerState.Falling;
+            }
+        }
+        this.vel.x = constrain(this.vel.x, -this.runSpeed, this.runSpeed);
+        this.vel.y = constrain(this.vel.y, -10, 10);
+    }
+    collision_detection(map, axis) {
+        let leftTile = floor((this.pos.x + this.collisionHPadding) / tileWidth);
+        let rightTile = floor((this.pos.x + this.size.x - this.collisionHPadding) / tileWidth);
+        let topTile = floor(this.pos.y / tileHeight);
+        let bottomTile = floor((this.pos.y + this.size.y) / tileHeight);
+        let collisionHappened = false;
+        for (let tileY = topTile; tileY <= bottomTile; tileY++) {
+            for (let tileX = leftTile; tileX <= rightTile; tileX++) {
+                if (isTileCollidable(tileY, tileX)) {
+                    if (axis == 'y') {
+                        if (this.vel.y >= 0) {
+                            collisionHappened = true;
+                            this.pos.y = tileY * tileHeight - this.size.y - 1;
+                            this.animState = playerState.Walking;
+                            this.vel.y = 0;
+                            this.doubleJump = true;
+                            if (this.moving == enemyMoving.None) {
+                                if (abs(this.vel.x) < 0.01)
+                                    this.vel.x = 0;
+                                else
+                                    this.vel.x /= 4;
+                            }
+                        }
+                        else {
+                            this.pos.y = (tileY + 1) * tileHeight + 1;
+                            this.vel.y = -0.1;
+                        }
+                    }
+                    else if (axis == 'x') {
+                        if (this.vel.x > 0) {
+                            this.pos.x = tileX * tileWidth - (this.size.x - this.collisionHPadding) - 1;
+                            this.vel.x = 0;
+                        }
+                        else if (this.vel.x < 0) {
+                            this.pos.x = (tileX + 1) * tileWidth + 1 - this.collisionHPadding;
+                            this.vel.x = 0;
+                        }
+                    }
+                }
+            }
+        }
+        return collisionHappened;
     }
 }
 var playerState;
@@ -176,7 +229,7 @@ class Player {
         this.collisionHPadding = 14;
         this.collisionHappenedLastTurn = false;
         this.collisionHappenedSecondFromLastTurn = false;
-        this.pos = createVector(width * 3 / 5, height);
+        this.pos = createVector(width * 1 / 5, height);
         this.vel = createVector(0, 0);
         this.acc = createVector(0, 0.5);
         this.size = createVector(tileWidth * 2 - 5, tileHeight * 2);
@@ -240,7 +293,7 @@ class Player {
         let collisionHappened = false;
         for (let tileY = topTile; tileY <= bottomTile; tileY++) {
             for (let tileX = leftTile; tileX <= rightTile; tileX++) {
-                if (map[tileY] != undefined && this.isBlockStopable(map[tileY][tileX])) {
+                if (isTileCollidable(tileY, tileX)) {
                     if (axis == 'y') {
                         if (this.vel.y >= 0) {
                             collisionHappened = true;
@@ -252,7 +305,7 @@ class Player {
                                 if (abs(this.vel.x) < 0.01)
                                     this.vel.x = 0;
                                 else
-                                    this.vel.x /= 2;
+                                    this.vel.x /= 4;
                             }
                         }
                         else {
@@ -274,14 +327,6 @@ class Player {
             }
         }
         return collisionHappened;
-    }
-    isBlockStopable(num) {
-        let stopBlockNums = [
-            196, 474, 475, 200, 709, 710, 709, 710, 711, 713, 714, 709, 710, 711, 717, 709, 710, 711, 729, 730, 731,
-            468, 469, 470, 526, 527, 528,
-            119, 120, 121, 122, 123, 124, 125
-        ];
-        return stopBlockNums.find((e) => e == num) != undefined;
     }
     jump() {
         if (this.animState == playerState.Jumping || this.animState == playerState.Falling) {
@@ -334,23 +379,22 @@ class Player {
         };
     }
     loadFrame(frame) {
-        this.pos = frame.position.copy(),
-            this.vel = frame.velocity.copy(),
-            this.acc = frame.acc.copy(),
-            this.size = frame.size.copy(),
-            this.animManager.load(frame.animManager),
-            this.animState = frame.animState,
-            this.moving = frame.moving,
-            this.direction = frame.direction;
+        this.pos = frame.position.copy();
+        this.vel = frame.velocity.copy();
+        this.acc = frame.acc.copy();
+        this.size = frame.size.copy();
+        this.animManager.load(frame.animManager);
+        this.animState = frame.animState;
+        this.moving = frame.moving;
+        this.direction = frame.direction;
     }
 }
-const spritesheetPath = "./assets/tileset.png";
-const mapPath = "./assets/map.txt";
+const spritesheetPath = "./assets/tileMap/tileset.png";
+const mapPath = "./assets/tileMap/tileMap.json";
 const cloudPath = "./assets/clouds.png";
 const farGroundsPath = "./assets/far-grounds.png";
 const skyPath = "./assets/sky.png";
 const seaPath = "./assets/sea.png";
-const braidPath = "./assets/braid.png";
 const braidIdleImagePath = "./assets/braidIdle/spritesheet.png";
 const braidIdleInfoPath = "./assets/braidIdle/spritesheet.json";
 const braidRunImagePath = "./assets/braidRun/spritesheet.png";
@@ -368,29 +412,25 @@ let braidJumpInfo;
 let braidFallImage;
 let braidFallInfo;
 let spritesheetImage;
-let mapArray;
 let cloudImage;
 let farGroundsImage;
 let skyImage;
 let seaImage;
-let braidImage;
 let mapRows;
 let mapCols;
-let spritesheetTileWidth = 64;
-let spritesheetTileHeight = 64;
-let spritesheetRows = 20;
-let spritesheetCols = 58;
-let mapStrings;
+let spritesheetTileWidth;
+let spritesheetTileHeight;
+let spritesheetCols;
+let mapJson;
 let tileWidth = 40;
 let tileHeight = 40;
 function preload() {
     spritesheetImage = loadImage(spritesheetPath);
-    mapStrings = loadStrings(mapPath);
+    mapJson = loadJSON(mapPath);
     cloudImage = loadImage(cloudPath);
     farGroundsImage = loadImage(farGroundsPath);
     skyImage = loadImage(skyPath);
     seaImage = loadImage(seaPath);
-    braidImage = loadImage(braidPath);
     braidIdleImage = loadImage(braidIdleImagePath);
     braidIdleInfo = loadJSON(braidIdleInfoPath);
     braidRunImage = loadImage(braidRunImagePath);
@@ -405,10 +445,19 @@ let player;
 let cameraPos;
 let gameStates = [];
 let isRewinding = false;
+let mapLayers;
+let mainLayer;
+let foregroundLayer;
+let backgroundLayer;
 function setup() {
-    createCanvas(800, 600);
-    mapArray = loadMap(mapStrings);
-    newAnimationManager = new NewAnimationManager();
+    createCanvas(windowWidth, windowHeight);
+    frameRate(60);
+    mapLayers = loadMap();
+    mainLayer = mapLayers['mainLayer'];
+    backgroundLayer = mapLayers['backgroundLayer'];
+    foregroundLayer = mapLayers['foregroundLayer'];
+    print(mainLayer);
+    newAnimationManager = new AnimationManager();
     newAnimationManager.addAnimation('idle', braidIdleInfo, braidIdleImage);
     newAnimationManager.setHPadding('idle', 18);
     newAnimationManager.addAnimation('fall', braidFallInfo, braidFallImage);
@@ -423,14 +472,16 @@ function setup() {
     cameraPos = createVector(width / 2 - player.pos.x, height / 2 - player.pos.y);
 }
 function draw() {
-    background(220);
+    background(235);
     drawBackground();
     cameraPos.lerp(createVector(-player.pos.x + width / 2 - (width / 10 * (player.animManager.isFlipped ? -1 : 1.5)), height / 8 - player.pos.y + height / 2), 0.05);
     push();
     translate(cameraPos);
-    player.update(mapArray);
+    drawMapLayer(backgroundLayer);
+    drawMapLayer(mainLayer);
+    player.update(mainLayer);
     player.draw();
-    drawMap();
+    drawMapLayer(foregroundLayer);
     pop();
     rewindingFacilities();
 }
@@ -462,11 +513,11 @@ function rewindingFacilities() {
 }
 function drawBackground() {
     for (let i = 0; i < ceil(width / skyImage.width); i++) {
-        image(skyImage, i * skyImage.width, 0, skyImage.width, skyImage.height * 1.5);
+        image(skyImage, i * skyImage.width, 0, skyImage.width, height * 2 / 3);
     }
-    let seaHeight = height - seaImage.height * 1;
+    let seaHeight = height - seaImage.height;
     for (let i = 0; i < ceil(width / seaImage.width); i++) {
-        image(seaImage, i * seaImage.width, seaHeight, seaImage.width * 1, seaImage.height * 1);
+        image(seaImage, i * seaImage.width, seaHeight, seaImage.width, seaImage.height);
     }
     for (let i = 0; i < ceil(width / cloudImage.width); i++) {
         let cloudHeight = seaHeight - cloudImage.height;
@@ -475,34 +526,65 @@ function drawBackground() {
     let fargroundHeight = farGroundsImage.height * width / farGroundsImage.width;
     image(farGroundsImage, 0, height - fargroundHeight, width, fargroundHeight);
 }
-function drawMap() {
+function drawMapLayer(mapLayer) {
     for (let row = 0; row < mapRows; row++) {
         for (let col = 0; col < mapCols; col++) {
-            let frameNumber = mapArray[row][col] - 1;
+            let frameNumber = mapLayer[row][col] - 1;
             drawPartOfImage(frameNumber, col * tileWidth, row * tileHeight, tileWidth, tileHeight);
         }
     }
 }
 function drawPartOfImage(frameNumber, x, y, w, h) {
-    let r = floor(frameNumber / spritesheetCols);
-    let c = frameNumber % spritesheetCols;
-    image(spritesheetImage, x, y, w + 1, h + 1, spritesheetTileWidth * c, spritesheetTileHeight * r, spritesheetTileWidth, spritesheetTileHeight);
+    let row = floor(frameNumber / spritesheetCols);
+    let col = frameNumber % spritesheetCols;
+    image(spritesheetImage, x, y, w + 1, h + 1, spritesheetTileWidth * col, spritesheetTileHeight * row, spritesheetTileWidth, spritesheetTileHeight);
 }
-function loadMap(mapStrings) {
-    mapRows = mapStrings.length;
-    let tileMap = [];
-    for (let str of mapStrings) {
-        let rowOfStrings = str.split('\t');
-        let rowOfInts = rowOfStrings.map(Number);
-        mapCols = rowOfInts.length;
-        tileMap.push(rowOfInts);
+function loadMap() {
+    print(mapJson);
+    let tilesetInfo = mapJson.tilesets[0];
+    spritesheetTileWidth = tilesetInfo.tilewidth;
+    spritesheetTileHeight = tilesetInfo.tileheight;
+    spritesheetCols = tilesetInfo.columns;
+    mapCols = mapJson.width;
+    mapRows = mapJson.height;
+    let layers = {};
+    for (let layer of mapJson.layers) {
+        let tileMap = [];
+        for (let row = 0; row < mapRows; row++) {
+            let newRow = [];
+            for (let col = 0; col < mapCols; col++) {
+                let index = mapCols * row + col;
+                newRow.push(layer.data[index]);
+            }
+            tileMap.push(newRow);
+        }
+        layers[layer.name] = tileMap;
     }
-    return tileMap;
+    return layers;
 }
+function isTileCollidable(rowOnMap, colOnMap) {
+    var _a;
+    if (rowOnMap < 0 || rowOnMap > mapRows - 1 || colOnMap < 0 || colOnMap > mapCols - 1)
+        return false;
+    let tileNumberOnSpritesheet = mainLayer[rowOnMap][colOnMap] - 1;
+    let tileInfo = mapJson.tilesets[0].tiles[tileNumberOnSpritesheet];
+    return (_a = tileInfo) === null || _a === void 0 ? void 0 : _a.properties.find((elem) => elem.name == 'collideable').value;
+}
+let state = null;
 function keyPressed(e) {
     player.keyPressed(e);
+    if (key == 'q') {
+        state = player.saveFrame();
+        print(state.animManager);
+    }
+    else if (key == 'w') {
+        player.loadFrame(state);
+        print(state.animManager);
+    }
 }
 function keyReleased(e) {
     player.keyReleased(e);
+}
+function mousePressed() {
 }
 //# sourceMappingURL=build.js.map
