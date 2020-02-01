@@ -35,7 +35,7 @@ class Enemy {
 	bouncedTimes = 3;
 
 	constructor(anim: AnimationManager) {
-		this.pos = createVector((width * 3) / 5, height);
+		this.pos = createVector((width * 6) / 5, height);
 		this.vel = createVector(0, 0);
 		this.acc = createVector(0, 0.5);
 		this.size = createVector(tileWidth * 2 - 5, tileHeight * 2);

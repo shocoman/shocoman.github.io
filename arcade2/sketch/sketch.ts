@@ -115,6 +115,7 @@ let shiftKeyPressed: boolean = false;
 
 function setup() {
     createCanvas(1000, 700);
+    // createCanvas(windowWidth, windowHeight);
     frameRate(60);
 
     mapLayers = loadMap();

@@ -126,7 +126,7 @@ class Enemy {
         this.collisionHPadding = 14;
         this.isBouncing = true;
         this.bouncedTimes = 3;
-        this.pos = createVector((width * 3) / 5, height);
+        this.pos = createVector((width * 6) / 5, height);
         this.vel = createVector(0, 0);
         this.acc = createVector(0, 0.5);
         this.size = createVector(tileWidth * 2 - 5, tileHeight * 2);
@@ -327,14 +327,15 @@ class Player {
         this.collisionHPadding = 14;
         this.collisionHappenedLastTurn = false;
         this.collisionHappenedSecondFromLastTurn = false;
-        this.pos = createVector((width * 1) / 5, height);
+        this.pos = createVector(102, 759);
         this.vel = createVector(0, 0);
         this.acc = createVector(0, 0.5);
         this.size = createVector(tileWidth * 2 - 5, tileHeight * 2);
         this.moving = playerMoving.None;
-        this.direction = playerDirection.Right;
+        this.direction = playerDirection.Left;
         this.animState = playerState.Falling;
         this.animManager = anim;
+        anim.isFlipped = true;
         this.runSpeed = 6;
         this.jumpVelocity = 15;
         this.doubleJump = true;
