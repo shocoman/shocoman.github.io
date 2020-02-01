@@ -593,7 +593,7 @@ function setup() {
     initAnimations();
     player = new Player(newAnimationManager);
     monster = new Enemy(monsterAnimationManager);
-    cameraPos = createVector(width / 2 - player.pos.x, height / 2 - player.pos.y);
+    cameraPos = createVector(width / 2, height / 2);
 }
 function draw() {
     background(235);
