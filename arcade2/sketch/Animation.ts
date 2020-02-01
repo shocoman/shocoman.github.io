@@ -19,6 +19,16 @@ class CharacterAnimation {
 		this.initAnimation(animationInfoJson, animationSpritesheetImage);
 	}
 
+	save() {
+		return {
+			count: this.frameCount
+		}
+	}
+
+	load(state: any){
+		this.frameCount = state.count; 
+	}
+
 	initAnimation(animationInfoJson: any, animationSpritesheetImage: p5.Image) {
 		this.spritesheet = animationSpritesheetImage;
 		this.frames = animationInfoJson.frames;
@@ -118,15 +128,27 @@ class AnimationManager {
 	}
 
 	save() {
+
+		// let anims = { ...this.animations };
+		let anims: any = {};
+		for (let key of Object.keys(this.animations)) {
+			anims[key] = this.animations[key].save();
+		}
+
 		return {
-			animations: { ...this.animations },
+			animations: anims,
 			isFlipped: this.isFlipped,
 			currentAnimation: this.currentAnimation,
 		};
 	}
 
 	load(saveState: any) {
-		this.animations = { ...saveState.animations };
+		// this.animations = { ...saveState.animations };
+
+		for (let key of Object.keys(saveState.animations)) {
+			this.animations[key].load(saveState.animations[key]);
+		}
+
 		this.isFlipped = saveState.isFlipped;
 		this.currentAnimation = saveState.currentAnimation;
 	}

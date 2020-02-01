@@ -9,6 +9,14 @@ class CharacterAnimation {
         this.callback = null;
         this.initAnimation(animationInfoJson, animationSpritesheetImage);
     }
+    save() {
+        return {
+            count: this.frameCount
+        };
+    }
+    load(state) {
+        this.frameCount = state.count;
+    }
     initAnimation(animationInfoJson, animationSpritesheetImage) {
         this.spritesheet = animationSpritesheetImage;
         this.frames = animationInfoJson.frames;
@@ -77,14 +85,20 @@ class AnimationManager {
         this.currentAnimation = name;
     }
     save() {
+        let anims = {};
+        for (let key of Object.keys(this.animations)) {
+            anims[key] = this.animations[key].save();
+        }
         return {
-            animations: Object.assign({}, this.animations),
+            animations: anims,
             isFlipped: this.isFlipped,
             currentAnimation: this.currentAnimation,
         };
     }
     load(saveState) {
-        this.animations = Object.assign({}, saveState.animations);
+        for (let key of Object.keys(saveState.animations)) {
+            this.animations[key].load(saveState.animations[key]);
+        }
         this.isFlipped = saveState.isFlipped;
         this.currentAnimation = saveState.currentAnimation;
     }
