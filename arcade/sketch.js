@@ -8,7 +8,7 @@ function setup() {
 
     anim_manager = new AnimationManager();
     anim_manager.load('run', './sprites/engineer/run.png', 8, 1, 8, createVector(0, 0), createVector(64, 112));
-    anim_manager.load('idle', './sprites/engineer/idle.png', 9, 1, 9, createVector(0, 0), createVector(64, 112));
+    anim_manager.load('idle', './sprites/engineer/idle.png', 9, 1, 9, createVector(0, 0), createVector(16, 28));
     anim_manager.load('jump', './sprites/engineer/jump.png', 2, 1, 2, createVector(0, 0), createVector(64, 112));
 
     player = new Player(anim_manager);

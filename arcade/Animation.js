@@ -23,7 +23,7 @@ class Animation {
             translate(-size.x, 0);
         }
 
-        image(this.img, pos.x * (is_flipped ? -1 : 1), pos.y, size.x, size.y,
+        image(this.img, floor(pos.x) * (is_flipped ? -1 : 1),floor( pos.y), floor(size.x), floor(size.y),
             this.frame_pos.x + this.get_current_col() * (this.frame_size.x + this.column_offset),
             this.frame_pos.y + this.get_current_row() * (this.frame_size.y + this.row_offset),
             this.frame_size.x, this.frame_size.y);

@@ -9,8 +9,8 @@ class Tile {
 	}
 
 	drawLine(x, wallHeight, touchCoords, px, py) {
-		let getIntersectionSide = function(tileX, tileY, touchX, touchY) {
-			let vecCrossMult = function(v1, v2) {
+		let getIntersectionSide = function (tileX, tileY, touchX, touchY) {
+			let vecCrossMult = function (v1, v2) {
 				return v1.x * v2.y - v1.y * v2.x;
 			};
 
@@ -38,8 +38,6 @@ class Tile {
 
 		let side = getIntersectionSide(touchCoords.tileLoc.x, touchCoords.tileLoc.y, touchCoords.x, touchCoords.y);
 
-		strokeCap(SQUARE);
-		strokeWeight(8);
 		if (side == 'bottom') {
 			this.drawColumn(this.texture, abs(touchCoords.x * this.s - this.x) / this.s, x, wallHeight);
 		} else if (side == 'top') {
@@ -60,11 +58,17 @@ class Tile {
 			ncol -= ncol % 4;
 			let nrow = p * img.width * 4;
 
-			stroke(img.pixels[4 * ncol + nrow], img.pixels[4 * ncol + 1 + nrow], img.pixels[4 * ncol + 2 + nrow], 255);
+
+			if (frameCount % 1 == 0) {
+				stroke(floor(img.pixels[4 * ncol + nrow]),
+					floor(img.pixels[4 * ncol + 1 + nrow]),
+					floor(img.pixels[4 * ncol + 2 + nrow]));
+			}
+
 
 			acc += finalHeight / img.height;
 
-			line(ncolTo, height / 2 - finalHeight / 2 + i, ncolTo, height / 2 - finalHeight / 2 + i + ceil(acc));
+			line(floor(ncolTo), floor(height / 2 - finalHeight / 2 + i), floor(ncolTo), floor(height / 2 - finalHeight / 2 + i + ceil(acc)));
 			i += ceil(acc);
 			acc -= ceil(acc);
 		}

@@ -1,0 +1,78 @@
+{
+	"frames": [
+		{
+			"filename": "!flying_upward 1.png",
+			"frame": {
+				"x": 0,
+				"y": 0,
+				"w": 115,
+				"h": 120
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 115,
+				"h": 120
+			},
+			"sourceSize": {
+				"w": 115,
+				"h": 120
+			}
+		},
+		{
+			"filename": "!flying_upward 2.png",
+			"frame": {
+				"x": 115,
+				"y": 0,
+				"w": 115,
+				"h": 120
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 115,
+				"h": 120
+			},
+			"sourceSize": {
+				"w": 115,
+				"h": 120
+			}
+		},
+		{
+			"filename": "!flying_upward 3.png",
+			"frame": {
+				"x": 0,
+				"y": 120,
+				"w": 115,
+				"h": 121
+			},
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": {
+				"x": 0,
+				"y": 0,
+				"w": 115,
+				"h": 121
+			},
+			"sourceSize": {
+				"w": 115,
+				"h": 121
+			}
+		}
+	],
+	"meta": {
+		"app": "http://www.codeandweb.com/texturepacker",
+		"version": "1.0",
+		"image": "spritesheet.png",
+		"format": "RGBA8888",
+		"size": {
+			"w": 230,
+			"h": 241
+		},
+		"scale": "1"
+	}
+}

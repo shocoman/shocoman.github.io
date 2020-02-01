@@ -36,7 +36,7 @@ function setup() {
 	createCanvas(600, 400);
 	tilesRows = height / tileSize;
 	tilesCols = width / tileSize;
-	frameRate(30);
+	frameRate(60);
 
 	initTextures(tilesRows, tilesCols);
 	createRoom();
@@ -44,6 +44,9 @@ function setup() {
 	lockPointer();
 	// things.push(new Thing(width / 2 - 30, height / 2 - 50, starSprite));
 	// things.push(new Thing(width / 2 + 30, height / 2 - 50, starSprite));
+
+	strokeCap(SQUARE);
+	strokeWeight(8);
 }
 
 function draw() {
@@ -59,7 +62,7 @@ function draw() {
 
 class Thing {
 	constructor(x, y, t, dir) {
-		this.pos = createVector(x,y);
+		this.pos = createVector(x, y);
 		this.dir = dir;
 		this.texture = t;
 		this.speed = 5
@@ -86,7 +89,7 @@ class Thing {
 			let d = dist(this.pos.x, this.pos.y, player.pos.x, player.pos.y);
 
 			let size = 5000 / d;
-			image(this.texture, col, height / 2 - size / 2, size, size);
+			image(this.texture, floor(col), floor(height / 2 - size / 2), floor(size), floor(size));
 		}
 	}
 }
@@ -130,10 +133,10 @@ function drawSkyAndFloor() {
 	let color2 = color('#bf8040');
 	for (let i = height / 2; i < height; i++) {
 		stroke(lerpColor(color1, color2, (i - height / 2) / (height / 2)));
-		line(0, i, width, i);
+		line(0, floor(i), width, floor(i));
 	}
 }
 
-function mousePressed(){
+function mousePressed() {
 	things.push(new Thing(player.pos.x, player.pos.y - 5, starSprite, player.dir));
 }
