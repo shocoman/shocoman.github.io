@@ -257,10 +257,6 @@ function draw() {
     textSize(30);
     textAlign(LEFT, BOTTOM);
     drawScore();
-    if (showRect) {
-        fill(200);
-        rect(100, 100, 400, 400);
-    }
 }
 function drawScore() {
     stroke(0);

@@ -53,10 +53,6 @@ function draw() {
     
     drawScore()
 
-    if (showRect) {
-        fill(200);
-        rect(100,100,400,400);
-    }
 }
 
 function drawScore(){
@@ -93,7 +89,7 @@ function mouseReleased() {
 
         grid.swapTiles(pressedTile.row, pressedTile.col, releasedTile.row, releasedTile.col);
         // grid.checkMouseClick();
-    }
+    
 }
 
 function keyPressed() {
