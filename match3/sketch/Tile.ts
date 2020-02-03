@@ -19,8 +19,6 @@ class Tile {
 
     type: tileType;
 
-    selected: boolean;
-
     moving: boolean;
     endPoint: p5.Vector;
     shouldBeRemoved: boolean;
@@ -40,7 +38,6 @@ class Tile {
 
     init() {
         this.type = floor(random(tileType.length));
-        this.selected = false;
         this.endPoint = this.pos;
 
         this.moving = false;
@@ -52,14 +49,13 @@ class Tile {
     }
 
 
-    setDestination(endPoint: p5.Vector) {
+    moveTo(endPoint: p5.Vector) {
         this.moving = true;
         this.endPoint = endPoint;
     }
 
 
-    move() {
-        // something else
+    update() {
         if (this.moving) {
             if (this.pos.dist(this.endPoint) < 1) {
                 this.pos = this.endPoint.copy();
@@ -78,30 +74,22 @@ class Tile {
 
 
     draw(rotationAngle: number) {
-
         let frame = charactersJSON.frames[tileType[this.type].toLowerCase()].frame
-
-        if (this.selected)
-            stroke(255);
-        else
-            noStroke();
 
         let x = this.pos.x + this.padding.x;
         let y = this.pos.y + this.padding.y;
         let w = this.size.x - 2 * this.padding.x;
         let h = this.size.y - 2 * this.padding.y;
 
-
         push();
-
         translate(x+w/2,y+h/2);
+        if (this.isDying)
+            rotationAngle += this.padding.x/12
         rotate(rotationAngle);
         translate(-(x+w/2),-(y+h/2));
        
-
-        image(charactersImage, x, y, w <= 0 ? 1 : w, h <= 0 ? 1 : h, frame.x, frame.y, frame.w, frame.h);
+        image(charactersImage, x, y, max(w,1), max(h,1), frame.x, frame.y, frame.w, frame.h);
 
         pop();
-
     }
 }

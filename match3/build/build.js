@@ -1,15 +1,17 @@
 class Grid {
     constructor(startX, startY, w, h) {
-        this.firstTile = {};
-        this.secondTile = {};
+        this.moveReady = false;
         this.startX = startX;
         this.startY = startY;
         this.width = w;
         this.height = h;
         this.rows = 8;
         this.cols = 8;
-        this.swapTime = false;
+        this.isSwappingTime = false;
+        this.initRotation();
         this.initGrid(startX, startY, w, h);
+    }
+    initRotation() {
         this.startRotateAngle = PI / 12;
         this.rotateOffset = 0;
         this.rotateAcc = 0.0001;
@@ -23,16 +25,18 @@ class Grid {
         for (let row = 0; row < this.rows; row++) {
             let tilesRow = [];
             for (let col = 0; col < this.cols; col++) {
-                let tile = new Tile(startX + col * this.tileWidth, startY + row * this.tileHeight - 10 * height, this.tileWidth, this.tileHeight);
+                let x = startX + col * this.tileWidth;
+                let y = startY + row * this.tileHeight - 10 * height;
+                let tile = new Tile(x, y, this.tileWidth, this.tileHeight);
                 let destination = createVector(startX + col * this.tileWidth, startY + row * this.tileHeight);
-                tile.setDestination(destination);
+                tile.moveTo(destination);
                 tilesRow.push(tile);
             }
             tiles.push(tilesRow);
         }
         this.tiles = tiles;
     }
-    swapTiles(row1, col1, row2, col2) {
+    swapTwoTiles(row1, col1, row2, col2) {
         let dRow = abs(row1 - row2);
         let dCol = abs(col1 - col2);
         if (dRow + dCol != 1)
@@ -40,14 +44,12 @@ class Grid {
         let tile1 = this.tiles[row1][col1];
         let tile2 = this.tiles[row2][col2];
         let oldPos = tile1.pos.copy();
-        tile1.setDestination(tile2.pos.copy());
-        tile2.setDestination(oldPos);
+        tile1.moveTo(tile2.pos.copy());
+        tile2.moveTo(oldPos);
         let tmp = this.tiles[row1][col1];
         this.tiles[row1][col1] = this.tiles[row2][col2];
         this.tiles[row2][col2] = tmp;
-        this.swapTime = true;
-        this.firstTile = { row: row1, col: col1 };
-        this.secondTile = { row: row2, col: col2 };
+        this.isSwappingTime = true;
     }
     update() {
         let anyMoves = false;
@@ -56,25 +58,32 @@ class Grid {
                 anyMoves = anyMoves || this.tiles[row][col].moving;
             }
         }
+        if (anyMoves) {
+            this.moveReady = true;
+        }
         if (!anyMoves) {
             let tilesToRemove = this.findThreeInRow();
-            if (tilesToRemove.length == 0 && this.swapTime) {
-                this.swapTiles(pressedTile.row, pressedTile.col, releasedTile.row, releasedTile.col);
+            if (this.isSwappingTime && tilesToRemove.length == 0) {
+                this.swapTwoTiles(pressedTile.row, pressedTile.col, releasedTile.row, releasedTile.col);
             }
-            this.swapTime = false;
-            for (let row = this.rows - 1; row >= 0; row--) {
-                for (let col = this.cols - 1; col >= 0; col--) {
-                    if (this.tiles[row][col].isDead) {
-                        this.removeTile(row, col);
+            this.isSwappingTime = false;
+            let offset = slowFalling ? this.rows - 1 : 0;
+            for (let row = 0; row < this.rows; row += 1) {
+                for (let col = 0; col < this.cols; col++) {
+                    if (this.tiles[abs(offset - row)][col].isDead) {
+                        this.removeTile(abs(offset - row), col);
                     }
                 }
             }
         }
+        this.updateTilesRotation();
         for (let row = 0; row < this.rows; row++) {
             for (let col = 0; col < this.cols; col++) {
-                this.tiles[row][col].move();
+                this.tiles[row][col].update();
             }
         }
+    }
+    updateTilesRotation() {
         if (this.rotateOffset >= this.startRotateAngle) {
             this.rotateSpeed += this.rotateAcc;
         }
@@ -100,7 +109,8 @@ class Grid {
                             let colN = col - counter - (isLastColumn && hasSameType ? 0 : 1);
                             tilesToRemove.push({ row: row, col: colN });
                         }
-                        score += Math.pow(10, (sameTilesCounter - 2));
+                        if (this.moveReady)
+                            score += (Object.keys(tilesToRemove).length - 1) * (Math.pow(10, sameTilesCounter));
                     }
                     sameTilesCounter = 1;
                     currentType = this.tiles[row][col].type;
@@ -122,7 +132,8 @@ class Grid {
                             let rowN = row - counter - (isLastRow && hasSameType ? 0 : 1);
                             tilesToRemove.push({ row: rowN, col: col });
                         }
-                        score += Math.pow(10, (sameTilesCounter - 2));
+                        if (this.moveReady)
+                            score += (Object.keys(tilesToRemove).length - 1) * (Math.pow(10, sameTilesCounter));
                     }
                     sameTilesCounter = 1;
                     currentType = this.tiles[row][col].type;
@@ -133,24 +144,18 @@ class Grid {
             this.tiles[tile.row][tile.col].shouldBeRemoved = true;
             this.tiles[tile.row][tile.col].isDying = true;
         }
+        this.moveReady = false;
         return tilesToRemove;
     }
     draw() {
         for (let row = 0; row < this.rows; row++) {
             for (let col = 0; col < this.cols; col++) {
-                this.tiles[row][col].draw(this.startRotateAngle - this.rotateOffset);
+                let angle = this.startRotateAngle - this.rotateOffset;
+                this.tiles[row][col].draw(angle);
             }
         }
     }
-    checkMouseClick() {
-        let row = floor((mouseY - this.startY) / this.tileHeight);
-        let col = floor((mouseX - this.startX) / this.tileWidth);
-        if (row >= this.rows || col >= this.cols)
-            return;
-        let tile = this.tiles[row][col];
-        this.removeTile(row, col);
-    }
-    mouseToGrid() {
+    mouseCoordsToGrid() {
         let r = floor((mouseY - this.startY) / this.tileHeight);
         let c = floor((mouseX - this.startX) / this.tileWidth);
         return { row: r, col: c };
@@ -159,22 +164,21 @@ class Grid {
         if (this.tiles[row][col].moving) {
             return;
         }
-        let oldPos = this.tiles[0][col].pos.copy();
         for (let i = row; i > 0; i--) {
-            let aboveTile = this.tiles[i - 1][col];
             let currentTile = this.tiles[i][col];
+            let upperTile = this.tiles[i - 1][col];
             if (currentTile.moving) {
-                aboveTile.setDestination(p5.Vector.add(currentTile.endPoint, createVector(0, -currentTile.size.y)));
+                upperTile.moveTo(p5.Vector.add(currentTile.endPoint, createVector(0, -currentTile.size.y)));
             }
             else {
-                aboveTile.setDestination(currentTile.pos.copy());
+                upperTile.moveTo(currentTile.pos.copy());
             }
-            this.tiles[i][col] = aboveTile;
+            this.tiles[i][col] = upperTile;
         }
-        oldPos = createVector(col * this.tileWidth + this.startX, -this.tileHeight + this.startY);
-        let newPos = createVector(col * this.tileWidth + this.startX, 0 + this.startY);
-        this.tiles[0][col] = new Tile(oldPos.x, oldPos.y, this.tileWidth, this.tileHeight);
-        this.tiles[0][col].setDestination(newPos);
+        let aboveScreenPos = createVector(this.startX + col * this.tileWidth, this.startY - 3 * this.tileHeight);
+        let nextPos = createVector(col * this.tileWidth + this.startX, 0 + this.startY);
+        this.tiles[0][col] = new Tile(aboveScreenPos.x, aboveScreenPos.y, this.tileWidth, this.tileHeight);
+        this.tiles[0][col].moveTo(nextPos);
     }
 }
 var tileType;
@@ -199,7 +203,6 @@ class Tile {
     }
     init() {
         this.type = floor(random(tileType.length));
-        this.selected = false;
         this.endPoint = this.pos;
         this.moving = false;
         this.shouldBeRemoved = false;
@@ -207,11 +210,11 @@ class Tile {
         this.isDead = false;
         this.minimizingSpeed = 3;
     }
-    setDestination(endPoint) {
+    moveTo(endPoint) {
         this.moving = true;
         this.endPoint = endPoint;
     }
-    move() {
+    update() {
         if (this.moving) {
             if (this.pos.dist(this.endPoint) < 1) {
                 this.pos = this.endPoint.copy();
@@ -228,19 +231,17 @@ class Tile {
     }
     draw(rotationAngle) {
         let frame = charactersJSON.frames[tileType[this.type].toLowerCase()].frame;
-        if (this.selected)
-            stroke(255);
-        else
-            noStroke();
         let x = this.pos.x + this.padding.x;
         let y = this.pos.y + this.padding.y;
         let w = this.size.x - 2 * this.padding.x;
         let h = this.size.y - 2 * this.padding.y;
         push();
         translate(x + w / 2, y + h / 2);
+        if (this.isDying)
+            rotationAngle += this.padding.x / 12;
         rotate(rotationAngle);
         translate(-(x + w / 2), -(y + h / 2));
-        image(charactersImage, x, y, w <= 0 ? 1 : w, h <= 0 ? 1 : h, frame.x, frame.y, frame.w, frame.h);
+        image(charactersImage, x, y, max(w, 1), max(h, 1), frame.x, frame.y, frame.w, frame.h);
         pop();
     }
 }
@@ -260,7 +261,7 @@ function preload() {
 }
 let score = 0;
 let grid;
-let showRect = false;
+let slowFalling = false;
 function setup() {
     let minDim = min(windowWidth, windowHeight);
     createCanvas(minDim, minDim);
@@ -271,11 +272,11 @@ function draw() {
     background(backgroundImage);
     grid.update();
     grid.draw();
-    textSize(30);
-    textAlign(LEFT, BOTTOM);
     drawScore();
 }
 function drawScore() {
+    textSize(30);
+    textAlign(LEFT, BOTTOM);
     stroke(0);
     line(0, height - 50, width, height - 50);
     let formattedScore = new Intl.NumberFormat().format(score);
@@ -284,16 +285,16 @@ function drawScore() {
 let pressedTile;
 let releasedTile;
 function mousePressed() {
-    pressedTile = grid.mouseToGrid();
+    pressedTile = grid.mouseCoordsToGrid();
 }
 function mouseReleased() {
-    let coords = grid.mouseToGrid();
-    releasedTile = coords;
+    releasedTile = grid.mouseCoordsToGrid();
+    ;
     if (pressedTile && releasedTile)
-        grid.swapTiles(pressedTile.row, pressedTile.col, releasedTile.row, releasedTile.col);
+        grid.swapTwoTiles(pressedTile.row, pressedTile.col, releasedTile.row, releasedTile.col);
 }
 function keyPressed() {
-    if (key == ' ')
-        grid.findThreeInRow();
+    if (key === 'z')
+        slowFalling = !slowFalling;
 }
 //# sourceMappingURL=build.js.map

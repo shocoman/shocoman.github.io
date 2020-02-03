@@ -1,5 +1,5 @@
 const charactersImagePath = './assets/characters/spritesheet.png';
-const charactersInfoPath = './assets/characters/spritesheet.json';
+const charactersInfoPath =  './assets/characters/spritesheet.json';
 
 const backgroundImagePath = './assets/ui/bg.png';
 const scoreTextFontPath = './assets/font/HVD_Comic_Serif_Pro.otf';
@@ -11,7 +11,7 @@ let backgroundImage: p5.Image;
 let scoreTextFont: p5.Font;
 
 
-function preload(){
+function preload() {
     charactersImage = loadImage(charactersImagePath);
     charactersJSON = loadJSON(charactersInfoPath);
     backgroundImage = loadImage(backgroundImagePath);
@@ -20,16 +20,15 @@ function preload(){
 }
 
 
-
 let score = 0;
-
 let grid: Grid;
-let showRect = false;
+let slowFalling = false;
+
 function setup() {
     let minDim = min(windowWidth, windowHeight);
     createCanvas(minDim, minDim);
-    
-    grid = new Grid(20,0, width-40, height-60);
+
+    grid = new Grid(20, 0, width - 40, height - 60);
 
     textFont(scoreTextFont);
 }
@@ -38,26 +37,22 @@ function setup() {
 function draw() {
     background(backgroundImage);
 
-    // scale(0.5);
-    // translate(width/2, height/2);
 
-
+    // scale(0.9);
+    // translate(0, height*0.2);
 
     grid.update();
     grid.draw();
 
-    textSize(30);
-    textAlign(LEFT, BOTTOM);
-
-
-    
     drawScore()
-
 }
 
-function drawScore(){
+
+function drawScore() {
+    textSize(30);
+    textAlign(LEFT, BOTTOM);
     stroke(0);
-    line(0, height - 50, width,height - 50);
+    line(0, height - 50, width, height - 50);
     let formattedScore = new Intl.NumberFormat().format(score);
     text(`Score: ${formattedScore}`, 5, height);
 }
@@ -67,36 +62,18 @@ function drawScore(){
 let pressedTile: any;
 let releasedTile: any;
 
-
-
 function mousePressed() {
-    pressedTile = grid.mouseToGrid();
-
-    // if (mouseButton === LEFT) {
-
-    //     pressedTile = grid.mouseToGrid();
-
-    //     // grid.checkMouseClick();
-    // } else if (mouseButton === RIGHT) {
-    //     grid.findThreeInRow();
-    // }
+    pressedTile = grid.mouseCoordsToGrid();
 }
 
 function mouseReleased() {
-    // showRect = false;    if (mouseButton === LEFT) {
-        let coords = grid.mouseToGrid();
-        releasedTile = coords;
+    releasedTile = grid.mouseCoordsToGrid();;
 
-        if (pressedTile && releasedTile)
-            grid.swapTiles(pressedTile.row, pressedTile.col, releasedTile.row, releasedTile.col);
-        // grid.checkMouseClick();
-    
+    if (pressedTile && releasedTile)
+        grid.swapTwoTiles(pressedTile.row, pressedTile.col, releasedTile.row, releasedTile.col);
 }
 
 function keyPressed() {
-    if (key == ' ')
-        grid.findThreeInRow();
+    if (key === 'z')
+        slowFalling = !slowFalling;
 }
-
-
-
