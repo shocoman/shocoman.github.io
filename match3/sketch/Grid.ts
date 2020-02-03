@@ -14,6 +14,13 @@ class Grid {
     firstTile: {} = {};
     secondTile: {} = {};
 
+    
+    startRotateAngle: number;
+    rotateOffset: number;
+    rotateSpeed: number;
+    rotateAcc: number;
+    rotateClockwise: boolean;
+
     constructor(startX: number, startY: number, w: number, h: number) {
         this.startX = startX;
         this.startY = startY;
@@ -23,6 +30,12 @@ class Grid {
         this.cols = 8;
         this.swapTime = false;
         this.initGrid(startX, startY, w, h);
+
+        this.startRotateAngle = PI/12;
+        this.rotateOffset = 0;
+        this.rotateAcc = 0.0001;
+        this.rotateSpeed = 0;
+        this.rotateClockwise = false;
     }
 
     initGrid(startX: number, startY: number, w: number, h: number) {
@@ -46,8 +59,8 @@ class Grid {
     swapTiles(row1: number, col1: number, row2: number, col2: number) {
         let dRow = abs(row1 - row2);
         let dCol = abs(col1 - col2);
-        if (dRow != 1 && dCol != 1 || dRow == 1 && dCol == 1)
-            return;
+        if (dRow + dCol != 1) return; // tiles are not adjacent
+
         let tile1 = this.tiles[row1][col1];
         let tile2 = this.tiles[row2][col2];
         let oldPos = tile1.pos.copy();
@@ -74,6 +87,7 @@ class Grid {
 
         if (!anyMoves) {
             let tilesToRemove = this.findThreeInRow();
+
             if (tilesToRemove.length == 0 && this.swapTime) {
                 this.swapTiles(pressedTile.row, pressedTile.col, releasedTile.row, releasedTile.col);
             }
@@ -95,6 +109,15 @@ class Grid {
                 this.tiles[row][col].move();
             }
         }
+
+
+        // update tiles rotation
+        if (this.rotateOffset >= this.startRotateAngle){
+            this.rotateSpeed += this.rotateAcc;
+        } else {
+            this.rotateSpeed -= this.rotateAcc;
+        }
+        this.rotateOffset -= this.rotateSpeed;
     }
 
     findThreeInRow() {
@@ -162,7 +185,7 @@ class Grid {
     draw() {
         for (let row = 0; row < this.rows; row++) {
             for (let col = 0; col < this.cols; col++) {
-                this.tiles[row][col].draw();
+                this.tiles[row][col].draw(this.startRotateAngle - this.rotateOffset);
             }
         }
     }

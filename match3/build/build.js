@@ -10,6 +10,11 @@ class Grid {
         this.cols = 8;
         this.swapTime = false;
         this.initGrid(startX, startY, w, h);
+        this.startRotateAngle = PI / 12;
+        this.rotateOffset = 0;
+        this.rotateAcc = 0.0001;
+        this.rotateSpeed = 0;
+        this.rotateClockwise = false;
     }
     initGrid(startX, startY, w, h) {
         this.tileWidth = w / this.cols;
@@ -30,7 +35,7 @@ class Grid {
     swapTiles(row1, col1, row2, col2) {
         let dRow = abs(row1 - row2);
         let dCol = abs(col1 - col2);
-        if (dRow != 1 && dCol != 1 || dRow == 1 && dCol == 1)
+        if (dRow + dCol != 1)
             return;
         let tile1 = this.tiles[row1][col1];
         let tile2 = this.tiles[row2][col2];
@@ -70,6 +75,13 @@ class Grid {
                 this.tiles[row][col].move();
             }
         }
+        if (this.rotateOffset >= this.startRotateAngle) {
+            this.rotateSpeed += this.rotateAcc;
+        }
+        else {
+            this.rotateSpeed -= this.rotateAcc;
+        }
+        this.rotateOffset -= this.rotateSpeed;
     }
     findThreeInRow() {
         let tilesToRemove = [];
@@ -126,7 +138,7 @@ class Grid {
     draw() {
         for (let row = 0; row < this.rows; row++) {
             for (let col = 0; col < this.cols; col++) {
-                this.tiles[row][col].draw();
+                this.tiles[row][col].draw(this.startRotateAngle - this.rotateOffset);
             }
         }
     }
@@ -214,7 +226,7 @@ class Tile {
             }
         }
     }
-    draw() {
+    draw(rotationAngle) {
         let frame = charactersJSON.frames[tileType[this.type].toLowerCase()].frame;
         if (this.selected)
             stroke(255);
@@ -224,7 +236,12 @@ class Tile {
         let y = this.pos.y + this.padding.y;
         let w = this.size.x - 2 * this.padding.x;
         let h = this.size.y - 2 * this.padding.y;
+        push();
+        translate(x + w / 2, y + h / 2);
+        rotate(rotationAngle);
+        translate(-(x + w / 2), -(y + h / 2));
         image(charactersImage, x, y, w <= 0 ? 1 : w, h <= 0 ? 1 : h, frame.x, frame.y, frame.w, frame.h);
+        pop();
     }
 }
 const charactersImagePath = './assets/characters/spritesheet.png';
@@ -272,7 +289,8 @@ function mousePressed() {
 function mouseReleased() {
     let coords = grid.mouseToGrid();
     releasedTile = coords;
-    grid.swapTiles(pressedTile.row, pressedTile.col, releasedTile.row, releasedTile.col);
+    if (pressedTile && releasedTile)
+        grid.swapTiles(pressedTile.row, pressedTile.col, releasedTile.row, releasedTile.col);
 }
 function keyPressed() {
     if (key == ' ')

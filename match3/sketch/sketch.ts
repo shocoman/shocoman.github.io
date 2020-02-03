@@ -38,8 +38,8 @@ function setup() {
 function draw() {
     background(backgroundImage);
 
-    // scale(0.2);
-    // translate(2*width, 2*height);
+    // scale(0.5);
+    // translate(width/2, height/2);
 
 
 
@@ -87,7 +87,8 @@ function mouseReleased() {
         let coords = grid.mouseToGrid();
         releasedTile = coords;
 
-        grid.swapTiles(pressedTile.row, pressedTile.col, releasedTile.row, releasedTile.col);
+        if (pressedTile && releasedTile)
+            grid.swapTiles(pressedTile.row, pressedTile.col, releasedTile.row, releasedTile.col);
         // grid.checkMouseClick();
     
 }
