@@ -74,20 +74,20 @@ let releasedTile: any;
 
 
 function mousePressed() {
-    showRect = true;
-    if (mouseButton === LEFT) {
-        let coords = grid.mouseToGrid();
-        pressedTile = coords;
+    pressedTile = grid.mouseToGrid();
 
-        // grid.checkMouseClick();
-    } else if (mouseButton === RIGHT) {
-        grid.findThreeInRow();
-    }
+    // if (mouseButton === LEFT) {
+
+    //     pressedTile = grid.mouseToGrid();
+
+    //     // grid.checkMouseClick();
+    // } else if (mouseButton === RIGHT) {
+    //     grid.findThreeInRow();
+    // }
 }
 
 function mouseReleased() {
-    // showRect = false;
-    if (mouseButton === LEFT) {
+    // showRect = false;    if (mouseButton === LEFT) {
         let coords = grid.mouseToGrid();
         releasedTile = coords;
 

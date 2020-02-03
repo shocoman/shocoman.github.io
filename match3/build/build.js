@@ -271,21 +271,12 @@ function drawScore() {
 let pressedTile;
 let releasedTile;
 function mousePressed() {
-    showRect = true;
-    if (mouseButton === LEFT) {
-        let coords = grid.mouseToGrid();
-        pressedTile = coords;
-    }
-    else if (mouseButton === RIGHT) {
-        grid.findThreeInRow();
-    }
+    pressedTile = grid.mouseToGrid();
 }
 function mouseReleased() {
-    if (mouseButton === LEFT) {
-        let coords = grid.mouseToGrid();
-        releasedTile = coords;
-        grid.swapTiles(pressedTile.row, pressedTile.col, releasedTile.row, releasedTile.col);
-    }
+    let coords = grid.mouseToGrid();
+    releasedTile = coords;
+    grid.swapTiles(pressedTile.row, pressedTile.col, releasedTile.row, releasedTile.col);
 }
 function keyPressed() {
     if (key == ' ')
