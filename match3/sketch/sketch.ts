@@ -50,7 +50,7 @@ function draw() {
     textAlign(LEFT, BOTTOM);
 
 
-
+    
     drawScore()
 
     if (showRect) {
@@ -86,7 +86,7 @@ function mousePressed() {
 }
 
 function mouseReleased() {
-    showRect = false;
+    // showRect = false;
     if (mouseButton === LEFT) {
         let coords = grid.mouseToGrid();
         releasedTile = coords;

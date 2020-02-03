@@ -281,7 +281,6 @@ function mousePressed() {
     }
 }
 function mouseReleased() {
-    showRect = false;
     if (mouseButton === LEFT) {
         let coords = grid.mouseToGrid();
         releasedTile = coords;
