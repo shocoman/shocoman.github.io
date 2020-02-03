@@ -24,6 +24,7 @@ function preload(){
 let score = 0;
 
 let grid: Grid;
+let showRect = false;
 function setup() {
     let minDim = min(windowWidth, windowHeight);
     createCanvas(minDim, minDim);
@@ -51,6 +52,11 @@ function draw() {
 
 
     drawScore()
+
+    if (showRect) {
+        fill(200);
+        rect(100,100,400,400);
+    }
 }
 
 function drawScore(){
@@ -66,7 +72,9 @@ let pressedTile: any;
 let releasedTile: any;
 
 
+
 function mousePressed() {
+    showRect = true;
     if (mouseButton === LEFT) {
         let coords = grid.mouseToGrid();
         pressedTile = coords;
@@ -78,6 +86,7 @@ function mousePressed() {
 }
 
 function mouseReleased() {
+    showRect = false;
     if (mouseButton === LEFT) {
         let coords = grid.mouseToGrid();
         releasedTile = coords;
