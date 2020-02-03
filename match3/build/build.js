@@ -18,7 +18,9 @@ class Grid {
         for (let row = 0; row < this.rows; row++) {
             let tilesRow = [];
             for (let col = 0; col < this.cols; col++) {
-                let tile = new Tile(startX + col * this.tileWidth, startY + row * this.tileHeight, this.tileWidth, this.tileHeight);
+                let tile = new Tile(startX + col * this.tileWidth, startY + row * this.tileHeight - 10 * height, this.tileWidth, this.tileHeight);
+                let destination = createVector(startX + col * this.tileWidth, startY + row * this.tileHeight);
+                tile.setDestination(destination);
                 tilesRow.push(tile);
             }
             tiles.push(tilesRow);
@@ -86,7 +88,7 @@ class Grid {
                             let colN = col - counter - (isLastColumn && hasSameType ? 0 : 1);
                             tilesToRemove.push({ row: row, col: colN });
                         }
-                        score += Math.pow(10, sameTilesCounter);
+                        score += Math.pow(10, (sameTilesCounter - 2));
                     }
                     sameTilesCounter = 1;
                     currentType = this.tiles[row][col].type;
@@ -108,7 +110,7 @@ class Grid {
                             let rowN = row - counter - (isLastRow && hasSameType ? 0 : 1);
                             tilesToRemove.push({ row: rowN, col: col });
                         }
-                        score += Math.pow(10, sameTilesCounter);
+                        score += Math.pow(10, (sameTilesCounter - 2));
                     }
                     sameTilesCounter = 1;
                     currentType = this.tiles[row][col].type;
@@ -242,7 +244,8 @@ function preload() {
 let score = 0;
 let grid;
 function setup() {
-    createCanvas(800, 800);
+    let minDim = min(windowWidth, windowHeight);
+    createCanvas(minDim, minDim);
     grid = new Grid(20, 0, width - 40, height - 60);
     textFont(scoreTextFont);
 }
@@ -256,7 +259,7 @@ function draw() {
 }
 function drawScore() {
     stroke(0);
-    line(0, height * 0.95, width, height * 0.95);
+    line(0, height - 50, width, height - 50);
     let formattedScore = new Intl.NumberFormat().format(score);
     text(`Score: ${formattedScore}`, 5, height);
 }

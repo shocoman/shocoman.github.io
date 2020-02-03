@@ -21,13 +21,12 @@ function preload(){
 
 
 
-
-
 let score = 0;
 
 let grid: Grid;
 function setup() {
-    createCanvas(800, 800);
+    let minDim = min(windowWidth, windowHeight);
+    createCanvas(minDim, minDim);
     
     grid = new Grid(20,0, width-40, height-60);
 
@@ -56,7 +55,7 @@ function draw() {
 
 function drawScore(){
     stroke(0);
-    line(0, height*0.95, width,height*0.95);
+    line(0, height - 50, width,height - 50);
     let formattedScore = new Intl.NumberFormat().format(score);
     text(`Score: ${formattedScore}`, 5, height);
 }

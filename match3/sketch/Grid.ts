@@ -32,7 +32,10 @@ class Grid {
         for (let row = 0; row < this.rows; row++) {
             let tilesRow: Tile[] = [];
             for (let col = 0; col < this.cols; col++) {
-                let tile = new Tile(startX + col * this.tileWidth, startY + row * this.tileHeight, this.tileWidth, this.tileHeight);
+                let tile = new Tile(startX + col * this.tileWidth, startY + row * this.tileHeight - 10*height, this.tileWidth, this.tileHeight);
+                let destination = createVector(startX + col * this.tileWidth, startY + row * this.tileHeight);
+                tile.setDestination(destination);
+                
                 tilesRow.push(tile);
             }
             tiles.push(tilesRow);
@@ -116,7 +119,7 @@ class Grid {
                             tilesToRemove.push({ row: row, col: colN });
                         }
 
-                        score += 10 ** sameTilesCounter;
+                        score += 10 ** (sameTilesCounter - 2);
                     }
                     sameTilesCounter = 1;
                     currentType = this.tiles[row][col].type;
@@ -141,7 +144,7 @@ class Grid {
                             tilesToRemove.push({ row: rowN, col: col });
                         }
 
-                        score += 10 ** sameTilesCounter;
+                        score += 10 ** (sameTilesCounter - 2);
                     }
                     sameTilesCounter = 1;
                     currentType = this.tiles[row][col].type;
