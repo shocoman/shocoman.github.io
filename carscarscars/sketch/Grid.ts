@@ -26,7 +26,7 @@ class Grid {
         this.height = h;
 
         this.rows = 8;
-        this.cols = 8;
+        this.cols = 10;
         this.isSwappingTime = false;
 
         this.initRotation();
@@ -34,7 +34,7 @@ class Grid {
     }
 
     initRotation() {
-        this.startRotateAngle = PI / 12;
+        this.startRotateAngle = 0;
         this.rotateOffset = 0;
         this.rotateAcc = 0.0001;
         this.rotateSpeed = 0;

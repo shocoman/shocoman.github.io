@@ -6,13 +6,13 @@ class Grid {
         this.width = w;
         this.height = h;
         this.rows = 8;
-        this.cols = 8;
+        this.cols = 10;
         this.isSwappingTime = false;
         this.initRotation();
         this.initGrid(startX, startY, w, h);
     }
     initRotation() {
-        this.startRotateAngle = PI / 12;
+        this.startRotateAngle = 0;
         this.rotateOffset = 0;
         this.rotateAcc = 0.0001;
         this.rotateSpeed = 0;
@@ -197,8 +197,8 @@ class Tile {
     constructor(x, y, w, h) {
         this.pos = createVector(x, y);
         this.size = createVector(w, h);
-        let paddingPercent = 0.05;
-        this.padding = createVector(paddingPercent * w, paddingPercent * h);
+        let paddingPercent = 0;
+        this.padding = createVector(-0.2 * w, paddingPercent * h);
         this.init();
     }
     init() {

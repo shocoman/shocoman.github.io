@@ -30,8 +30,9 @@ class Tile {
     constructor(x: number, y: number, w: number, h: number) {
         this.pos = createVector(x, y);
         this.size = createVector(w, h);
-        let paddingPercent = 0.05;
-        this.padding = createVector(paddingPercent * w, paddingPercent * h);
+        let paddingPercent = 0;
+        this.padding = createVector(-0.2 * w, paddingPercent * h);
+        
         this.init();
     }
 
