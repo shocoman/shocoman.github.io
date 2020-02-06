@@ -28,7 +28,9 @@ function setup() {
     let minDim = min(windowWidth, windowHeight);
     createCanvas(minDim, minDim);
 
-    grid = new Grid(20, 0, width - 40, height - 60);
+    let padX = 160;
+    let padY = 0;
+    grid = new Grid(padX, 0, width - 2*padX, height - 60);
 
     textFont(scoreTextFont);
 }

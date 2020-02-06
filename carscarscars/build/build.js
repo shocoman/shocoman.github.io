@@ -6,15 +6,15 @@ class Grid {
         this.width = w;
         this.height = h;
         this.rows = 8;
-        this.cols = 10;
+        this.cols = 8;
         this.isSwappingTime = false;
         this.initRotation();
         this.initGrid(startX, startY, w, h);
     }
     initRotation() {
-        this.startRotateAngle = 0;
+        this.startRotateAngle = PI;
         this.rotateOffset = 0;
-        this.rotateAcc = 0.0001;
+        this.rotateAcc = 0.0000;
         this.rotateSpeed = 0;
         this.rotateClockwise = false;
     }
@@ -265,7 +265,9 @@ let slowFalling = false;
 function setup() {
     let minDim = min(windowWidth, windowHeight);
     createCanvas(minDim, minDim);
-    grid = new Grid(20, 0, width - 40, height - 60);
+    let padX = 160;
+    let padY = 0;
+    grid = new Grid(padX, 0, width - 2 * padX, height - 60);
     textFont(scoreTextFont);
 }
 function draw() {
