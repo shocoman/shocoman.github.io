@@ -50,20 +50,23 @@ class Cell {
     }
 }
 let mod = function (x, n) { return (x % n + n) % n; };
-let activeRow = 3;
-let activeCol = 3;
-let activeColor;
 let walkerAngle = 0;
-let cols = 22;
+let cols = 18;
 let rows = 22;
 let r = 20;
 let cells = [];
+let activeRow = rows / 2 - 1;
+let activeCol = cols / 2 - 1;
+let activeColor;
 function setup() {
     frameRate(60);
-    createCanvas(800, 800);
+    createCanvas(900, 900);
 }
 function draw() {
     background(220);
+    strokeWeight(0);
+    translate(width * 1.5 / 3, 0);
+    rotate(PI / 4);
     initGrid(r, r, r);
     goFordward();
     for (let row = 0; row < rows; row++) {
@@ -91,7 +94,7 @@ function draw() {
 }
 function initGrid(x, y, r) {
     let dx = r * sqrt(3);
-    let dy = r * sqrt(2.3);
+    let dy = r * sqrt(1.8);
     for (let row = 0; row < rows; row++) {
         let newColumnArray = [];
         for (let col = 0; col < cols; col++) {
@@ -108,10 +111,10 @@ function initGrid(x, y, r) {
 }
 function goFordward() {
     if (keyCode != DOWN_ARROW) {
-        if (activeColor == Colors.blue) {
+        if (activeColor == Colors.white) {
             walkerAngle = mod(walkerAngle - 60, 360);
         }
-        else if (activeColor == Colors.red) {
+        else {
             walkerAngle = mod(walkerAngle + 60, 360);
         }
         if (walkerAngle == 240) {
