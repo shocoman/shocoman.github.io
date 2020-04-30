@@ -35,6 +35,8 @@ class Chip8 {
     block_until_key_pressed: number = -1;
 
     debug_mode: boolean = false;
+    load_quirk: boolean = true;
+    shift_quirk: boolean = true;
 
     constructor(){
         this.memory = new Uint8Array(0x1000);
@@ -220,8 +222,16 @@ class Chip8 {
                 break;
             case 0x6:
                 // store the least significant bit of regs[b1] in regs[0xF] and shift regs[b1] to the right by 1 bit
-                this.regs[0xF] = this.regs[b1] & 0x1;
-                this.regs[b1] >> 0x1;
+
+                // modify only regs[b1]
+                if (this.shift_quirk) {
+                    this.regs[0xF] = this.regs[b1] & 0x1;
+                    this.regs[b1] >>= 0x1;
+                } else {
+                    this.regs[0xF] = this.regs[b2] & 0x1;
+                    this.regs[b1] = (this.regs[b2] >>= 0x1);
+                }
+                
                 if (this.debug_mode) console.log("D: Vx>>=1 ");
                 break;
             case 0x7:
@@ -236,8 +246,19 @@ class Chip8 {
                 break;
             case 0xE:
                 // store the most significant bit of regs[b1] in regs[0xF] and shift regs[b1] to the left by 1 bit
-                this.regs[0xF] = this.regs[b1] >> 0x7 & 0x1;
-                this.regs[b1] << 0x1;
+                // this.regs[0xF] = this.regs[b1] >> 0x7 & 0x1;
+                // this.regs[b1] <<= 0x1;
+
+
+                // modify only regs[b1]
+                if (this.shift_quirk) {
+                    this.regs[0xF] = this.regs[b1] >> 0x7 & 0x1;
+                    this.regs[b1] <<= 0x1;
+                } else {
+                    this.regs[0xF] = this.regs[b2] >> 0x7 & 0x1;
+                    this.regs[b1] = (this.regs[b2] <<= 0x1);
+                }
+
                 if (this.debug_mode) console.log("D: Vx<<=1 ");
                 break;
         }
@@ -414,6 +435,11 @@ class Chip8 {
                 for (let i = 0x0; i <= b1; i++){
                     this.memory[this.I + i] = this.regs[i];
                 } 
+
+                if (!this.load_quirk) {
+                    this.I += b1;
+                }
+
                 if (this.debug_mode) console.log(`D: reg_dump(V${b1},&I)`);
             break;
             case 0x65:
@@ -421,6 +447,10 @@ class Chip8 {
                 for (let i = 0x0; i <= b1; i++){
                     this.regs[i] = this.memory[this.I + i];
                 } 
+                if (!this.load_quirk) {
+                    this.I += b1;
+                }
+
                 if (this.debug_mode) console.log(`D: reg_load(V${b1},&I) `);
             break;
         }

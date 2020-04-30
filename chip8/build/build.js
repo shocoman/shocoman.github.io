@@ -9,6 +9,8 @@ class Chip8 {
         this.screen_height = 0x20;
         this.block_until_key_pressed = -1;
         this.debug_mode = false;
+        this.load_quirk = true;
+        this.shift_quirk = true;
         this.memory = new Uint8Array(0x1000);
         this.regs = new Uint8Array(0x10);
         this.stack = new Uint16Array(0xC);
@@ -151,8 +153,14 @@ class Chip8 {
                     console.log("D: Vx -= Vy  ");
                 break;
             case 0x6:
-                this.regs[0xF] = this.regs[b1] & 0x1;
-                this.regs[b1] >> 0x1;
+                if (this.shift_quirk) {
+                    this.regs[0xF] = this.regs[b1] & 0x1;
+                    this.regs[b1] >>= 0x1;
+                }
+                else {
+                    this.regs[0xF] = this.regs[b2] & 0x1;
+                    this.regs[b1] = (this.regs[b2] >>= 0x1);
+                }
                 if (this.debug_mode)
                     console.log("D: Vx>>=1 ");
                 break;
@@ -166,8 +174,14 @@ class Chip8 {
                     console.log("D: Vx=Vy-Vx  ");
                 break;
             case 0xE:
-                this.regs[0xF] = this.regs[b1] >> 0x7 & 0x1;
-                this.regs[b1] << 0x1;
+                if (this.shift_quirk) {
+                    this.regs[0xF] = this.regs[b1] >> 0x7 & 0x1;
+                    this.regs[b1] <<= 0x1;
+                }
+                else {
+                    this.regs[0xF] = this.regs[b2] >> 0x7 & 0x1;
+                    this.regs[b1] = (this.regs[b2] <<= 0x1);
+                }
                 if (this.debug_mode)
                     console.log("D: Vx<<=1 ");
                 break;
@@ -299,12 +313,18 @@ class Chip8 {
                 for (let i = 0x0; i <= b1; i++) {
                     this.memory[this.I + i] = this.regs[i];
                 }
+                if (!this.load_quirk) {
+                    this.I += b1;
+                }
                 if (this.debug_mode)
                     console.log(`D: reg_dump(V${b1},&I)`);
                 break;
             case 0x65:
                 for (let i = 0x0; i <= b1; i++) {
                     this.regs[i] = this.memory[this.I + i];
+                }
+                if (!this.load_quirk) {
+                    this.I += b1;
                 }
                 if (this.debug_mode)
                     console.log(`D: reg_load(V${b1},&I) `);
