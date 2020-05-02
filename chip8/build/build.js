@@ -9,14 +9,9 @@ class Chip8 {
         this.screen_height = 0x20;
         this.block_until_key_pressed = -1;
         this.debug_mode = false;
-        this.load_quirk = true;
-        this.shift_quirk = true;
-        this.memory = new Uint8Array(0x1000);
-        this.regs = new Uint8Array(0x10);
-        this.stack = new Uint16Array(0xC);
-        this.keys = new Uint8Array(0x10);
-        this.screen = new Uint8Array(0x800);
-        this.store_font_data();
+        this.load_quirk = false;
+        this.shift_quirk = false;
+        this.init();
     }
     key_process(key, state) {
         this.keys[key] = state;
@@ -39,10 +34,28 @@ class Chip8 {
             this.xC, this.xD, this.xE, this.xF];
         instruction_types[instr >> 12 & 0xF].call(this, instr >> 8 & 0xF, instr >> 4 & 0xF, instr >> 0 & 0xF);
     }
+    clearScreen() {
+        for (let i = 0; i < this.screen.length; i++)
+            this.screen[i] = 0;
+    }
+    init() {
+        this.memory = new Uint8Array(0x1000);
+        this.regs = new Uint8Array(0x10);
+        this.stack = new Uint16Array(0xC);
+        this.keys = new Uint8Array(0x10);
+        this.screen = new Uint8Array(0x800);
+        this.store_font_data();
+        this.pc = 0x0;
+        this.I = 0x0;
+        this.sp = 0x0;
+        this.delay_timer = 0x0;
+        this.sound_timer = 0x0;
+        this.block_until_key_pressed = -1;
+        this.clearScreen();
+    }
     x0(b1, b2, b3) {
         if (b3 == 0x0) {
-            for (let i = 0; i < this.screen.length; i++)
-                this.screen[i] = 0;
+            this.clearScreen();
             this.pc += 2;
             if (this.debug_mode)
                 console.log("D: disp_clear()  ");
@@ -445,6 +458,8 @@ let invert_color = false;
 let emul_sound = true;
 let emul_speed = 8;
 let osc;
+let gameList;
+let gameListSelect;
 function setup() {
     createCanvas(800, 700);
     frameRate(60);
@@ -453,24 +468,53 @@ function setup() {
     osc = new p5.SqrOsc(400);
     osc.amp(0);
     osc.start();
-    let game_name = location.search;
-    fetch("./chip8_games/" + game_name.substr(1, game_name.length).toUpperCase())
+    loadGameList();
+    gameListSelect = createSelect();
+    gameListSelect.option('None');
+    let launchBtn = createButton("Launch");
+    launchBtn.mousePressed((() => {
+        var _a, _b;
+        let gameName = gameListSelect.selected();
+        let i = gameList.findIndex((el) => el.title === gameName);
+        if (i != -1) {
+            let obj = gameList[i];
+            chip8.load_quirk = ((_a = obj === null || obj === void 0 ? void 0 : obj.quirks) === null || _a === void 0 ? void 0 : _a.loadStore) || false;
+            chip8.shift_quirk = ((_b = obj === null || obj === void 0 ? void 0 : obj.quirks) === null || _b === void 0 ? void 0 : _b.shift) || false;
+            loadGame("./chip8_games/" + obj.file);
+        }
+        print(gameName);
+    }));
+}
+function loadGame(path) {
+    fetch(path)
         .then(resp => {
         if (resp.ok) {
             resp.blob().then(data => {
                 data.arrayBuffer().then(buffer => {
                     let array = new Uint8Array(buffer);
+                    chip8.init();
                     chip8.load_rom(array);
                     addr_shift = chip8.pc - 8;
                     rom_loaded = true;
+                    loop();
                 });
             });
         }
         else {
-            console.log("Game " + game_name + " doesn't exist");
+            console.log(path + " doesn't exist");
             noLoop();
             return;
         }
+    });
+}
+function loadGameList() {
+    fetch("./chip8_games/roms.json").then(gamesFile => {
+        gamesFile.json().then(gamesJson => {
+            gameList = gamesJson;
+            for (let gameEntry of gameList) {
+                gameListSelect.option(gameEntry.title);
+            }
+        });
     });
 }
 function draw() {
@@ -541,7 +585,6 @@ function draw_instructions() {
 function mousePressed() {
     let row = floor(map(mouseY, 0, pixel_size.y * chip8.screen_height, 0, chip8.screen_height));
     let col = floor(map(mouseX, 0, pixel_size.x * chip8.screen_width, 0, chip8.screen_width));
-    print(col, row);
 }
 function keyPressed() {
     let index = mapped_keys.indexOf(key);
@@ -555,7 +598,6 @@ function keyPressed() {
         addr_shift += 2;
     }
     else if (key == ' ') {
-        print('Next step!');
         show_emul_info = !show_emul_info;
     }
     else if (key == 'l') {

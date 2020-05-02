@@ -35,18 +35,11 @@ class Chip8 {
     block_until_key_pressed: number = -1;
 
     debug_mode: boolean = false;
-    load_quirk: boolean = true;
-    shift_quirk: boolean = true;
+    load_quirk: boolean = false;
+    shift_quirk: boolean = false;
 
     constructor(){
-        this.memory = new Uint8Array(0x1000);
-        this.regs = new Uint8Array(0x10);
-        this.stack = new Uint16Array(0xC);
-        this.keys = new Uint8Array(0x10);
-        this.screen = new Uint8Array(0x800);
-
-        
-        this.store_font_data();
+        this.init();
     }
 
     key_process(key: number, state: number){
@@ -67,7 +60,7 @@ class Chip8 {
 
     execute_instruction(instr: number){
         if (this.block_until_key_pressed != -1) {
-            // wait for key press and do nothing 
+            // do nothing and wait for key press
             return;
         }
 
@@ -79,6 +72,30 @@ class Chip8 {
         instruction_types[instr >> 12 & 0xF].call(this, instr >> 8 & 0xF, instr >> 4 & 0xF, instr >> 0 & 0xF);
     }
 
+    clearScreen(){
+        for (let i = 0; i < this.screen.length; i++) 
+            this.screen[i] = 0;
+    }
+
+    init(){
+        this.memory = new Uint8Array(0x1000);
+        this.regs = new Uint8Array(0x10);
+        this.stack = new Uint16Array(0xC);
+        this.keys = new Uint8Array(0x10);
+        this.screen = new Uint8Array(0x800);
+
+        this.store_font_data();
+
+        this.pc = 0x0;
+        this.I = 0x0;
+        this.sp = 0x0;
+        this.delay_timer = 0x0;
+        this.sound_timer = 0x0;
+        this.block_until_key_pressed = -1;
+
+        this.clearScreen();
+    }
+
     //
     // instruction zone here
     //
@@ -86,7 +103,7 @@ class Chip8 {
         // skip 0b1b2b3 (call) case
 
         if (b3 == 0x0) { // clear the screen
-            for (let i = 0; i < this.screen.length; i++) this.screen[i] = 0;
+            this.clearScreen();
             this.pc += 2;
 
             if (this.debug_mode) console.log("D: disp_clear()  ");
@@ -573,7 +590,7 @@ class Chip8 {
     }
 
     load_rom(rom: Uint8Array) {
-        // load rom and copy to memory
+        // load rom and copy it to memory
         // set pc to start location
         let start_location = 0x200;
         for (let i = 0; i < rom.byteLength; i++){

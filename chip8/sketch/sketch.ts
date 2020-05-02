@@ -18,6 +18,9 @@ let emul_sound = true;
 let emul_speed = 8;
 let osc: p5.SinOsc;
 
+let gameList: Array<Object>
+let gameListSelect: p5.Element
+
 function setup() {
     createCanvas(800, 700);
     frameRate(60)
@@ -30,53 +33,73 @@ function setup() {
     osc.amp(0);
     osc.start();
 
+    loadGameList()
 
-    // load game
-    let game_name = location.search;
-    // if (game_name.length == 0) return;
-    fetch("./chip8_games/"+game_name.substr(1, game_name.length).toUpperCase())
-    .then(resp => {
-        // print(resp);
 
-        if (resp.ok ) {
-            resp.blob().then(data => {
-                data.arrayBuffer().then(buffer => {
-    
-                    let array = new Uint8Array(buffer);
-                    chip8.load_rom(array);
-                    addr_shift = chip8.pc-8;
-    
-                    rom_loaded = true;
 
-                    
-                    // setInterval(basic_chip8_cycle, 1);
-                    // setInterval(basic_chip8_cycle, 1);
-                    // setInterval(basic_chip8_cycle, 1);
-                    // setInterval(basic_chip8_cycle, 1);
-                    // setInterval(basic_chip8_cycle, 1);
-                    // setInterval(basic_chip8_cycle, 1);
+    gameListSelect = createSelect();
+    gameListSelect.option('None');
+    // gameListSelect.changed(() => {
 
-                });
-            });
-        } else {
-            console.log("Game " + game_name + " doesn't exist");
-            noLoop();
-            return;
+    // });
+
+    let launchBtn = createButton("Launch");
+    launchBtn.mousePressed(( => {
+        let gameName = gameListSelect.selected()
+        let i = gameList.findIndex((el) => el.title === gameName)
+        if (i != -1){
+            let obj = gameList[i]
+            chip8.load_quirk = obj?.quirks?.loadStore || false;
+            chip8.shift_quirk = obj?.quirks?.shift || false;
+
+            loadGame("./chip8_games/" + obj.file);
         }
-
+        
+        print(gameName)
     });
-
-
-
 
 }
 
+function loadGame(path: string){
+    fetch(path)
+        .then(resp => {
+            if (resp.ok ) {
+                resp.blob().then(data => {
+                    data.arrayBuffer().then(buffer => {
+
+                        let array = new Uint8Array(buffer);
+                        chip8.init();
+                        chip8.load_rom(array);
+                        addr_shift = chip8.pc-8;
+
+                        rom_loaded = true;
+                        loop();
+                    });
+                });
+            } else {
+                console.log(path + " doesn't exist");
+                noLoop();
+                return;
+            }
+
+        });
+}
+
+function loadGameList(){
+    // fetch game list json file
+    fetch("./chip8_games/roms.json").then(gamesFile => {
+        gamesFile.json().then(gamesJson => {
+            gameList = gamesJson;
+            for (let gameEntry of gameList){
+                gameListSelect.option(gameEntry.title);
+            }
+        })
+    })    
+}
 
 
 function draw() {
-
     background(220);
-
         
     if (rom_loaded) {
         //basic_chip8_cycle();
@@ -91,7 +114,6 @@ function draw() {
     
 
     // draw screen
-    
     for (let y = 0; y < chip8.screen_height; y++) {
         for (let x = 0; x < chip8.screen_width; x++) {
             let col = chip8.screen[x + y * chip8.screen_width] == 0? 255 : 0;
@@ -184,8 +206,8 @@ function mousePressed(){
         0, pixel_size.y*chip8.screen_height, 0, chip8.screen_height));
     let col = floor(map(mouseX, 
         0, pixel_size.x*chip8.screen_width, 0, chip8.screen_width));
-
-    print(col, row)
+    
+    // print(col, row)
 }
 
 
@@ -203,8 +225,6 @@ function keyPressed(){
     } else if (keyCode == DOWN_ARROW) {
         addr_shift += 2;
     } else if (key == ' '){
-        print('Next step!');
-        // basic_chip8_cycle();
         show_emul_info = !show_emul_info;
     } else if (key == 'l'){
         addr_shift = chip8.pc - 8;
@@ -226,8 +246,6 @@ function keyPressed(){
 }
 
 function keyReleased(){
-
-
     let index = mapped_keys.indexOf(key);
     if (index != -1) {
         chip8.key_process(index, 0);
