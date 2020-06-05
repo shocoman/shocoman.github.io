@@ -11,7 +11,7 @@ function setup() {
         class_name = '';
         grid.clear();
     });
-    tf.loadLayersModel('../SketchClassifierJS/model.json').then(model => {
+    tf.loadLayersModel('./SketchClassifierJS/model.json').then(model => {
         ready = true;
         mymodel = model;
         class_name = '';
