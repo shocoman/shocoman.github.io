@@ -3,13 +3,30 @@ import * as twgl from "./twgl/twgl-full.module.js"
 
 
 const urlParams = new URLSearchParams(window.location.search);
-const width = urlParams.get('w') || 600;
-const height = urlParams.get('h') || 600;
+const width = urlParams.get('w') || 500;
+const height = urlParams.get('h') || 500;
 const grid_width = urlParams.get('gw') || 100; 
 const grid_height = urlParams.get('gh') || 100;
 const updateInterval = urlParams.get('u') || 100;
-console.log("Param names: canvas width -> w; canvas height -> h; grid width -> gw; grid height -> gh; update interval -> u");
+console.log(` 
+	Param names: canvas width -> w; canvas height -> h; grid width -> gw; 
+		grid height -> gh; update interval -> u
+	SPACE - turn on/off marching squares
+	S - stop evolving`);
 
+let useMarchingSquares = true;
+let evolve = true;
+
+
+document.addEventListener('keydown', event => {
+    if(event.code === 'Space'){
+		useMarchingSquares = !useMarchingSquares;
+		event.preventDefault();
+	} else if(event.key === 's'){
+		evolve = !evolve;
+		event.preventDefault();
+	}
+}, false);
 
 window.onload = main;
 async function main() {
@@ -31,6 +48,14 @@ async function main() {
 	for (let i = 0; i < grid_width * grid_height; i++) {
 		grid_cells.push( Math.random() > 0.5 ? 255 : 0 );
 	}
+
+	// grid_cells = [
+	// 	0, 0, 0, 0,
+	// 	0,   255,   255, 0,
+	// 	0, 255,   255,   255,
+	// 	0, 0,   0,   255
+	// ];
+
 	const grid = twgl.createTexture(gl, {
 		mag: gl.LINEAR,
 		min: gl.LINEAR, 
@@ -97,7 +122,7 @@ async function main() {
 		gl.useProgram(genProgramInfo.program);
 		twgl.setBuffersAndAttributes(gl, genProgramInfo, bufferInfo);
 		twgl.setUniforms(genProgramInfo, gen_uniforms);
-		twgl.drawBufferInfo(gl, bufferInfo);
+		if (evolve) twgl.drawBufferInfo(gl, bufferInfo);
 
 
 
@@ -108,14 +133,18 @@ async function main() {
 			u_resolution: [gl.canvas.width, gl.canvas.height],
 			u_texture_size: [grid_width, grid_height],
 			u_texture: textures[(curTexture + 1) % textures.length],
+			u_use_marching_squares: useMarchingSquares,
 		};
+
+		
 
 		gl.useProgram(drawProgramInfo.program);
 		twgl.setBuffersAndAttributes(gl, drawProgramInfo, bufferInfo);
 		twgl.setUniforms(drawProgramInfo, draw_uniforms);
 		twgl.drawBufferInfo(gl, bufferInfo);
 
-		curTexture += 1;
+
+		if (evolve) curTexture += 1;
 	}
 
 	render(0);
