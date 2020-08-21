@@ -6,6 +6,7 @@ precision highp int;
 uniform vec2 u_resolution;
 uniform float u_time;
 uniform bool u_use_marching_squares;
+uniform bool u_paused;
 
 uniform vec2 u_texture_size;
 uniform highp sampler2D u_texture; 
@@ -24,19 +25,15 @@ void main() {
 
 	int state = texel.r > 0.5 ? 1 : 0;
 
-	if (u_use_marching_squares ) {
-		state = get_pixel(texCoord);
-	}
-
-
-	// if (fract(texCoord.x) < 0.01 || fract(texCoord.y) < 0.01) {
-	// 	outColor = vec4(1.0,.0,.0,1.0);
-	// 	return;
-	// }
-	// state = texel.r > 0.5 ? 1 : 0;
-
-	
 	float c = state > 0 ? 1.0 : 0.0;
+	if (u_paused && (fract(texCoord.x) > 0.95 || fract(texCoord.y) > 0.95 )) {
+		c = 0.3;
+	} else if (u_use_marching_squares) {
+		texCoord.x = mod(texCoord.x - 0.5, u_texture_size.x);
+		texCoord.y = mod(texCoord.y + 0.5, u_texture_size.y);
+		state = get_pixel(texCoord);
+		c = state > 0 ? 1.0 : 0.0;
+	}  
 
 	outColor = vec4(vec3(c), 1.0);
 }
@@ -105,7 +102,7 @@ int get_pixel(vec2 coord) {
 			break;
 
 		case 8: // 1000
-			if (-texOffset.x + texOffset.y > 0.5) result = 1; result = 0;
+			if (-texOffset.x + texOffset.y > 0.5) result = 1;
 			break;
 
 
