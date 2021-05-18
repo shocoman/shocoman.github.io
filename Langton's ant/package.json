@@ -19,6 +19,6 @@
     "@types/mathjs": "^6.0.4",
     "decimal": "0.0.2",
     "decimal.js": "^10.2.0",
-    "mathjs": "^6.6.0"
+    "mathjs": "^7.5.1"
   }
 }
