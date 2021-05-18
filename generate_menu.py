@@ -32,9 +32,4 @@ def main():
     for l in links:
         print("\t", l)
 
-    msg = "minor fix"
-    os.system(f"git commit -am {msg}")
-    os.system(f"git push")
-        
-
 main()
