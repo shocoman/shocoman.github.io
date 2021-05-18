@@ -1,6 +1,5 @@
 import os
 
-
 def generate_htmls_for_links(links):
     newline = '<BR/>\n'
     html = f""" 
@@ -32,6 +31,10 @@ def main():
     print("Generated links: ")
     for l in links:
         print("\t", l)
+
+    msg = "minor fix"
+    os.system(f"git commit -am {msg}")
+    os.system(f"git push")
         
 
 main()
