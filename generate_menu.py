@@ -6,7 +6,7 @@ def generate_htmls_for_links(links):
     html = f""" 
         <html>
             <body>
-                {newline.join(map(lambda link: f"<a href={link}>{link}</a>", links))}
+                {newline.join(map(lambda link: f"<a href='{link}'>{link}</a>", links))}
             </body>
         </html>
         """
@@ -16,7 +16,6 @@ def generate_htmls_for_links(links):
 def read_links():
     links = []
     for dir in os.listdir(os.getcwd()): 
-        
         
         prefixed_dir = "./" + dir
         if os.path.isdir(prefixed_dir) and not dir.startswith(".") and os.listdir(prefixed_dir).count("index.html"):
