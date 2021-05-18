@@ -1,2 +1,2 @@
 # shocoman.github.io
-go away, please
+hello there
