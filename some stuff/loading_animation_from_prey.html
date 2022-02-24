@@ -1,0 +1,67 @@
+<div class="container" style="display: grid; grid-template-columns: repeat(4, 50px);">
+  <div class="cell d1"></div>
+  <div class="cell d2"></div>
+  <div class="cell d3"></div>
+  <div class="cell d4"></div>
+  
+  <div class="cell d5"></div>
+  <div class="cell d6"></div>
+  <div class="cell d7"></div>
+  <div class="cell d8"></div>
+  
+  <div class="cell d9"></div>
+  <div class="cell d10"></div>
+  <div class="cell d11"></div>
+  <div class="cell d12"></div>
+  
+  <div class="cell d13"></div>
+  <div class="cell d14"></div>
+  <div class="cell d15"></div>
+  <div class="cell d16"></div>
+</div>
+
+<style>
+:root { --mult: 0.075s; }
+
+.container {
+    grid-row-gap: 10px;
+}
+
+.cell {
+  width: 40px;
+  height: 40px;
+  background-color: gray;
+  
+  animation-duration: 1.5s;
+  animation-name: my-anim;
+  animation-iteration-count: infinite;
+  transform-origin: center;
+  animation-delay: 1s;
+}
+
+@keyframes my-anim {
+  from {}
+  
+  to {
+    transform: scale(0.0) rotate(10deg) rotateX(10deg)
+    
+  }
+}
+
+.d1 { animation-delay: calc(0 * var(--mult)); }
+.d2 { animation-delay: calc(1 * var(--mult)); }
+.d3 { animation-delay: calc(2 * var(--mult)); }
+.d4 { animation-delay: calc(3 * var(--mult)); }
+.d5 { animation-delay: calc(4 * var(--mult)); }
+.d6 { animation-delay: calc(5 * var(--mult)); }
+.d7 { animation-delay: calc(6 * var(--mult)); }
+.d8 { animation-delay: calc(7 * var(--mult)); }
+.d9 { animation-delay: calc(8 * var(--mult)); }
+.d10 { animation-delay: calc(9 * var(--mult)); }
+.d11 { animation-delay: calc(10 * var(--mult)); }
+.d12 { animation-delay: calc(11 * var(--mult)); }
+.d13 { animation-delay: calc(12 * var(--mult)); }
+.d14 { animation-delay: calc(13 * var(--mult)); }
+.d15 { animation-delay: calc(14 * var(--mult)); }
+.d16 { animation-delay: calc(15 * var(--mult)); }
+</style>
