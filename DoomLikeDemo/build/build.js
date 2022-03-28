@@ -34,7 +34,7 @@ var Wall = (function () {
         circle(this.p1.x, this.p1.y, isLeftPointVisible ? 10 : 5);
         circle(this.p2.x, this.p2.y, isRightPointVisible ? 10 : 5);
         if (wall_start < wall_end) {
-            strokeWeight(4);
+            strokeWeight(0);
             stroke(128, 128, 128);
             fill(255, 255, 255);
             line(wall_start, height / 2, wall_end, height / 2);
@@ -42,10 +42,23 @@ var Wall = (function () {
             var rightPointDist = (right_intersect_point !== null && right_intersect_point !== void 0 ? right_intersect_point : rightPoint).dist(player.pos);
             var leftWallWidth = 10000 / leftPointDist;
             var rightWallWidth = 10000 / rightPointDist;
-            pg.background(255);
-            pg.text("hello!", 0, 100);
-            texture(pg);
-            quad(wall_start, height / 2 - leftWallWidth / 2, wall_start, height / 2 + leftWallWidth / 2, wall_end, height / 2 + rightWallWidth / 2, wall_end, height / 2 - rightWallWidth / 2);
+            var wallDist = wall_end - wall_start;
+            var wallVisibleFrom = left_intersect_point ? left_intersect_point.dist(leftPoint) : 0;
+            var wallVisibleTo = right_intersect_point ? right_intersect_point.dist(leftPoint) : this.p1.dist(this.p2);
+            text("[".concat(wallVisibleFrom, "; ").concat(wallVisibleTo, "]"), 10, 280);
+            var chunkWidth = Math.floor(wallDist / 100);
+            var slope = (rightWallWidth - leftWallWidth) / wallDist;
+            var wallChunks = Math.floor(wallDist / chunkWidth);
+            var i = 0;
+            var offsetX = wall_start;
+            for (; i < Math.min(wallChunks, 150); ++i) {
+                fill(255, i * 250 / wallChunks, 255);
+                var x0 = wall_start + chunkWidth * i;
+                var x1 = wall_start + chunkWidth * (i + 1) + 1;
+                var y0 = leftWallWidth + i * slope * chunkWidth;
+                var y1 = leftWallWidth + (i + 1) * slope * chunkWidth;
+                quad(x0, height / 2 - y0 / 2, x0, height / 2 + y0 / 2, x1, height / 2 + y1 / 2, x1, height / 2 - y1 / 2);
+            }
             strokeWeight(1);
             text("LeftDist: ".concat(leftPointDist, "; RightDist: ").concat(rightPointDist, "; \nAngle: ").concat(degrees(0)), 0, 10);
         }
@@ -133,21 +146,20 @@ var fpsViewXOffset = 400;
 var fovDegrees = 60;
 var p;
 var w;
-var pg;
+var wallTexture;
+function preload() {
+    wallTexture = loadImage("assets/Японский мотив.bmp");
+}
 function setup() {
-    createCanvas(800, 400, WEBGL);
+    createCanvas(800, 400);
     p = new Player(50, 50);
     w = new Array();
     w.push(new Wall(createVector(100, 150), createVector(300, 150)));
-    w.push(new Wall(createVector(100, 150), createVector(200, 250)));
-    w.push(new Wall(createVector(300, 150), createVector(200, 250)));
-    pg = createGraphics(200, 200);
-    pg.textSize(75);
-    pg.resizeCanvas(100, 100);
 }
 function draw() {
-    translate(-width / 2, -height / 2);
     background(0);
+    drawImage();
+    return;
     p.update();
     p.draw();
     w.sort(function (a, b) {
@@ -171,6 +183,22 @@ function keyPressed(e) {
 }
 function keyReleased(e) {
     p.keyPressed(e, false);
+}
+function drawImageSegment(img, x, y, w, h, from, to) {
+    var sx0 = from * img.width;
+    var sx1 = to * img.width;
+    image(img, x, y, w, h, sx0, 0, sx1 - sx0, img.height);
+}
+function drawImage() {
+    var img = wallTexture, from = 0, to = 1, imgX = 50, imgY = 200, width = 400, startHeight = 100, endHeight = 200;
+    var segments = 80;
+    var segmentWidth = width / segments;
+    for (var i = 0; i < segments; i++) {
+        var x = imgX + i * segmentWidth;
+        var segmentHeight = startHeight + (endHeight - startHeight) * (i / segments);
+        var y = imgY - segmentHeight / 2;
+        drawImageSegment(img, x, y, segmentWidth, segmentHeight, from + (i / segments) * (to - from), from + ((i + 1) / segments) * (to - from));
+    }
 }
 function segmentIntersection(a0, a1, b0, b1) {
     var l = ((b1.y - a1.y) * (a0.x - a1.x) - (b1.x - a1.x) * (a0.y - a1.y)) /

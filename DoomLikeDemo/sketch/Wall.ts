@@ -55,7 +55,7 @@ class Wall {
 
         // draw 3d wall
         if (wall_start < wall_end) {
-            strokeWeight(4);
+            strokeWeight(0);
             stroke(128, 128, 128);
             fill(255, 255, 255);
             line(wall_start, height / 2, wall_end, height / 2);
@@ -63,21 +63,60 @@ class Wall {
             let rightPointDist = (right_intersect_point ?? rightPoint).dist(player.pos);
             let leftWallWidth = 10000 / leftPointDist;
             let rightWallWidth = 10000 / rightPointDist;
-            
-            pg.background(255);
-            pg.text("hello!", 0, 100);
-            texture(pg);
 
-            quad(
-                wall_start,
-                height / 2 - leftWallWidth / 2,
-                wall_start,
-                height / 2 + leftWallWidth / 2,
-                wall_end,
-                height / 2 + rightWallWidth / 2,
-                wall_end,
-                height / 2 - rightWallWidth / 2
-            );
+            const wallDist = wall_end - wall_start;
+
+            let wallVisibleFrom = left_intersect_point ? left_intersect_point.dist(leftPoint) : 0;
+            let wallVisibleTo = right_intersect_point ? right_intersect_point.dist(leftPoint) : this.p1.dist(this.p2);
+            text(`[${wallVisibleFrom}; ${wallVisibleTo}]`, 10, 280);
+
+            const chunkWidth = Math.floor(wallDist / 100);
+            const slope = (rightWallWidth - leftWallWidth) / wallDist;
+            const wallChunks = Math.floor(wallDist / chunkWidth);
+            let i = 0;
+            let offsetX = wall_start;
+            for (; i < Math.min(wallChunks, 150); ++i) {
+                fill(255, i * 250 / wallChunks, 255);
+                const x0 = wall_start + chunkWidth * i;
+                const x1 = wall_start + chunkWidth * (i+1)+1;
+                const y0 = leftWallWidth + i * slope * chunkWidth;
+                const y1 = leftWallWidth + (i+1) * slope * chunkWidth;    
+
+                quad(
+                    x0,
+                    height / 2 - y0 / 2,
+                    x0,
+                    height / 2 + y0 / 2,
+                    x1,
+                    height / 2 + y1 / 2,
+                    x1,
+                    height / 2 - y1 / 2
+                );
+            }
+
+            // last quad
+            // let lastChunkWidth = wallDist % chunkWidth;
+            // text(`wallDist: ${wallDist}\nSlope: ${slope}\nWallChunks: ${wallChunks}\nLast chunk width: ${lastChunkWidth}`, 0, 50);
+            // if (lastChunkWidth != 0) {
+            //     fill(255, i * 250 / wallChunks, 255);
+            //     const x0 = wall_start + chunkWidth * i;
+            //     const x1 = x0 + lastChunkWidth;
+            //     const y0 = leftWallWidth + i * slope * chunkWidth;
+            //     const y1 = rightWallWidth;    
+
+            //     quad(
+            //         x0,
+            //         height / 2 - y0 / 2,
+            //         x0,
+            //         height / 2 + y0 / 2,
+            //         x1,
+            //         height / 2 + y1 / 2,
+            //         x1,
+            //         height / 2 - y1 / 2
+            //     );
+            // }
+
+
             strokeWeight(1);
             text(
                 `LeftDist: ${leftPointDist}; RightDist: ${rightPointDist}; \nAngle: ${degrees(0)}`,

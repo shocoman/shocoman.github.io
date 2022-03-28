@@ -3,27 +3,28 @@ const fovDegrees = 60;
 let p: Player;
 let w: Wall[];
 
-let pg;
+let wallTexture: p5.Image;
+
+function preload() {
+    wallTexture = loadImage("assets/Японский мотив.bmp");
+    // img.loadPixels();
+}
 
 function setup() {
-    createCanvas(800, 400, WEBGL);
+    createCanvas(800, 400);
 
     p = new Player(50, 50);
     w = new Array();
     // w.push(new Wall(createVector(100, 250), createVector(300, 150)));
     w.push(new Wall(createVector(100, 150), createVector(300, 150)));
-    w.push(new Wall(createVector(100, 150), createVector(200, 250)));
-    w.push(new Wall(createVector(300, 150), createVector(200, 250)));
-
-    pg = createGraphics(200, 200);
-    pg.textSize(75);
-    pg.resizeCanvas(100, 100);
-
+    // w.push(new Wall(createVector(100, 150), createVector(200, 250)));
+    // w.push(new Wall(createVector(300, 150), createVector(200, 250)));
 }
 
 function draw() {
-    translate(-width / 2, -height / 2);
     background(0);
+    drawImage();
+    return;
 
     p.update();
     p.draw();
@@ -45,7 +46,6 @@ function draw() {
 
     fill(255, 255, 255);
 
- 
     // rotateX(0.5);
     // noStroke();
     // plane(50);
@@ -58,4 +58,46 @@ function keyPressed(e: KeyboardEvent) {
 
 function keyReleased(e: KeyboardEvent) {
     p.keyPressed(e, false);
+}
+
+function drawImageSegment(
+    img: p5.Image,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    from: number,
+    to: number
+) {
+    const sx0 = from * img.width;
+    const sx1 = to * img.width;
+    image(img, x, y, w, h, sx0, 0, sx1 - sx0, img.height);
+}
+
+function drawImage() {
+    const img = wallTexture,
+        from = 0,
+        to = 1,
+        imgX = 50,
+        imgY = 200,
+        width = 400,
+        startHeight = 100,
+        endHeight = 200;
+
+    const segments = 80;
+    let segmentWidth = width / segments;
+    for (let i = 0; i < segments; i++) {
+        let x = imgX + i * segmentWidth;
+        let segmentHeight = startHeight + (endHeight - startHeight) * (i / segments);
+        let y = imgY - segmentHeight / 2;
+        drawImageSegment(
+            img,
+            x,
+            y,
+            segmentWidth,
+            segmentHeight,
+            from + (i / segments) * (to - from),
+            from + ((i + 1) / segments) * (to - from)
+        );
+    }
 }
