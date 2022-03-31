@@ -8,7 +8,7 @@ class Player {
 
     constructor(x: number, y: number) {
         this.pos = createVector(x, y);
-        this.dir = createVector(0, 1).rotate(radians(-60));
+        this.dir = createVector(0, 1).rotate(radians(-fovDegrees));
         this.rotation = 0;
         this.movement = 0;
     }
@@ -47,8 +47,8 @@ class Player {
         stroke(255, 0, 0);
         let distVec = this.dir.copy().mult(30);
         let start = this.pos,
-            endLeft = p5.Vector.add(this.pos, distVec.copy().rotate(radians(30)).mult(10)),
-            endRight = p5.Vector.add(this.pos, distVec.copy().rotate(radians(-30)).mult(10));
+            endLeft = p5.Vector.add(this.pos, distVec.copy().rotate(radians(fovDegrees/2)).mult(10)),
+            endRight = p5.Vector.add(this.pos, distVec.copy().rotate(radians(-fovDegrees/2)).mult(10));
         line(start.x, start.y, endLeft.x, endLeft.y);
         line(start.x, start.y, endRight.x, endRight.y);
 

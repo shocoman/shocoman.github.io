@@ -45,20 +45,15 @@ var Wall = (function () {
             var wallDist = wall_end - wall_start;
             var wallVisibleFrom = left_intersect_point ? left_intersect_point.dist(leftPoint) : 0;
             var wallVisibleTo = right_intersect_point ? right_intersect_point.dist(leftPoint) : this.p1.dist(this.p2);
-            text("[".concat(wallVisibleFrom, "; ").concat(wallVisibleTo, "]"), 10, 280);
+            var wallActualDist = this.p1.dist(this.p2);
+            var wallVisibleFromPercent = wallVisibleFrom / wallActualDist;
+            var wallVisibleToPercent = wallVisibleTo / wallActualDist;
+            text("[".concat(Math.round(wallVisibleFromPercent * 100), "; ").concat(Math.round(wallVisibleToPercent * 100), "]"), 10, 280);
             var chunkWidth = Math.floor(wallDist / 100);
             var slope = (rightWallWidth - leftWallWidth) / wallDist;
             var wallChunks = Math.floor(wallDist / chunkWidth);
             var i = 0;
-            var offsetX = wall_start;
-            for (; i < Math.min(wallChunks, 150); ++i) {
-                fill(255, i * 250 / wallChunks, 255);
-                var x0 = wall_start + chunkWidth * i;
-                var x1 = wall_start + chunkWidth * (i + 1) + 1;
-                var y0 = leftWallWidth + i * slope * chunkWidth;
-                var y1 = leftWallWidth + (i + 1) * slope * chunkWidth;
-                quad(x0, height / 2 - y0 / 2, x0, height / 2 + y0 / 2, x1, height / 2 + y1 / 2, x1, height / 2 - y1 / 2);
-            }
+            drawImage(wallTexture, wallVisibleFromPercent, wallVisibleToPercent, wall_start, height / 2, wall_end - wall_start, leftWallWidth, rightWallWidth);
             strokeWeight(1);
             text("LeftDist: ".concat(leftPointDist, "; RightDist: ").concat(rightPointDist, "; \nAngle: ").concat(degrees(0)), 0, 10);
         }
@@ -90,7 +85,7 @@ var Point = (function (_super) {
 var Player = (function () {
     function Player(x, y) {
         this.pos = createVector(x, y);
-        this.dir = createVector(0, 1).rotate(radians(-60));
+        this.dir = createVector(0, 1).rotate(radians(-fovDegrees));
         this.rotation = 0;
         this.movement = 0;
     }
@@ -126,7 +121,7 @@ var Player = (function () {
     Player.prototype.draw = function () {
         stroke(255, 0, 0);
         var distVec = this.dir.copy().mult(30);
-        var start = this.pos, endLeft = p5.Vector.add(this.pos, distVec.copy().rotate(radians(30)).mult(10)), endRight = p5.Vector.add(this.pos, distVec.copy().rotate(radians(-30)).mult(10));
+        var start = this.pos, endLeft = p5.Vector.add(this.pos, distVec.copy().rotate(radians(fovDegrees / 2)).mult(10)), endRight = p5.Vector.add(this.pos, distVec.copy().rotate(radians(-fovDegrees / 2)).mult(10));
         line(start.x, start.y, endLeft.x, endLeft.y);
         line(start.x, start.y, endRight.x, endRight.y);
         fill(255, 255, 255);
@@ -158,8 +153,6 @@ function setup() {
 }
 function draw() {
     background(0);
-    drawImage();
-    return;
     p.update();
     p.draw();
     w.sort(function (a, b) {
@@ -189,8 +182,16 @@ function drawImageSegment(img, x, y, w, h, from, to) {
     var sx1 = to * img.width;
     image(img, x, y, w, h, sx0, 0, sx1 - sx0, img.height);
 }
-function drawImage() {
-    var img = wallTexture, from = 0, to = 1, imgX = 50, imgY = 200, width = 400, startHeight = 100, endHeight = 200;
+function drawImage(img, from, to, imgX, imgY, width, startHeight, endHeight) {
+    if (img === void 0) { img = wallTexture; }
+    if (from === void 0) { from = 0; }
+    if (to === void 0) { to = 1; }
+    if (imgX === void 0) { imgX = 50; }
+    if (imgY === void 0) { imgY = 200; }
+    if (width === void 0) { width = 400; }
+    if (startHeight === void 0) { startHeight = 100; }
+    if (endHeight === void 0) { endHeight = 200; }
+    text("img: ".concat(img, ",\n    from: ").concat(from, ",\n    to: ").concat(to, ",\n    imgX: ").concat(imgX, ",\n    imgY: ").concat(imgY, ",\n    width: ").concat(width, ",\n    startHeight: ").concat(startHeight, ",\n    endHeight: ").concat(endHeight, ","), 0, 150);
     var segments = 80;
     var segmentWidth = width / segments;
     for (var i = 0; i < segments; i++) {

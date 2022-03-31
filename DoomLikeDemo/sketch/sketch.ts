@@ -23,8 +23,8 @@ function setup() {
 
 function draw() {
     background(0);
-    drawImage();
-    return;
+    // drawImage();
+    // return;
 
     p.update();
     p.draw();
@@ -74,15 +74,28 @@ function drawImageSegment(
     image(img, x, y, w, h, sx0, 0, sx1 - sx0, img.height);
 }
 
-function drawImage() {
-    const img = wallTexture,
-        from = 0,
-        to = 1,
-        imgX = 50,
-        imgY = 200,
-        width = 400,
-        startHeight = 100,
-        endHeight = 200;
+function drawImage(
+    img = wallTexture,
+    from = 0,
+    to = 1,
+    imgX = 50,
+    imgY = 200,
+    width = 400,
+    startHeight = 100,
+    endHeight = 200
+) {
+    text(
+        `img: ${img},
+    from: ${from},
+    to: ${to},
+    imgX: ${imgX},
+    imgY: ${imgY},
+    width: ${width},
+    startHeight: ${startHeight},
+    endHeight: ${endHeight},`,
+        0,
+        150
+    );
 
     const segments = 80;
     let segmentWidth = width / segments;
@@ -99,5 +112,6 @@ function drawImage() {
             from + (i / segments) * (to - from),
             from + ((i + 1) / segments) * (to - from)
         );
+        // rect(x, y, segmentWidth, segmentHeight);
     }
 }
