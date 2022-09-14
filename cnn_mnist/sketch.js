@@ -13,7 +13,7 @@ function setup() {
 		grid.clear();
 	});
 
-	tf.loadLayersModel('model.json').then(model => {
+	tf.loadLayersModel('./model/model.json').then(model => {
 		ready = true;
 		mymodel = model;
 		number = '';
