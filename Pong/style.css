@@ -1,13 +1,8 @@
-
-
-#genForm {
-  text-align: center;
+html, body {
+  margin: 0;
+  padding: 0;
 }
 
-#patForm, canvas {
-  width: 30%;
-  margin: 0 auto;
-  text-align:right;
-  float: left;
-  /* vertical-align: top; */
+canvas {
+  display: block;
 }
