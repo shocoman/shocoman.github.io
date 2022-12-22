@@ -1,3 +1,4 @@
+#!/bin/python
 import os
 
 def generate_htmls_for_links(links):

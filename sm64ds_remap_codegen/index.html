@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="#" />
+    <title>SM64DS Remap AR Code Generator</title>
+</head>
+
+<body>
+    <h3>SM64DS Remap AR Code Generator</h1>
+        <script type="text/javascript" src="app.js"></script>
+        <div>
+            I. Select you rom version:
+            <select id="rom-version-select"></select>
+            <i id="controls-table-address-msg"></i>
+        </div>
+
+        <div>
+            II. Change the default controls: (you can map but cannot unmap the DPAD, Select, and Start keys)
+            <div id="control-modes"></div>
+        </div>
+
+        <div>
+            III. Copy the Action Replay code
+            (<button id="copy-btn">Copy to Clipboard</button>, <input id="include-default-vals" type="checkbox">include
+            default</input>)
+            <div>
+                <textarea rows="20" cols="20" id="ar-code-area"></textarea>
+            </div>
+        </div>
+</body>
+
+</html>
