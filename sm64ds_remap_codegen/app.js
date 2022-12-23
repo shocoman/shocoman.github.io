@@ -5,9 +5,11 @@ const romNames = [
   "ASMK-3C73EADE (Korea v1.0)",
   "ASME-AEA63749 (USA v1.0)",
   "ASME-F486F859 (USA v1.1)",
+  "ASMC-4F664FC5 (China v1.0 (iQue))",
 ];
 const romOffsets = [
   0x02075650, 0x02074160, 0x020738c0, 0x0206ff0c, 0x0207331c, 0x0207403c,
+  0x020738a0,
 ];
 
 const controlsTableByteSize = 32;
