@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="#" />
+    <title>3DS-NDS Key Remapper</title>
+
+    <style>
+        .mytd {
+            padding: 25px;
+            border-bottom: 2px solid black;
+            border-right: 2px solid black;
+            background-image: -webkit-gradient(linear, left bottom, right top, color-stop(49%, white), color-stop(50%, black), color-stop(51%, white));
+            background-image: -webkit-linear-gradient(bottom left, white 49%, black 50%, white 51%);
+            background-image: -o-linear-gradient(bottom left, white 49%, black 50%, white 51%);
+            background-image: linear-gradient(to top right, white 49%, black 50%, white 51%);
+
+            font-size: 0.75em;
+            color: brown;
+            font-weight: bold;
+        }
+
+        td .c1 {
+            -webkit-transform: translate(25px, -7px);
+            -ms-transform: translate(25px, -7px);
+            transform: translate(25px, -7px);
+        }
+
+        td .c2 {
+            -webkit-transform: translate(0px, 20px);
+            -ms-transform: translate(0px, 20px);
+            transform: translate(0px, 20px);
+        }
+    </style>
+
+</head>
+
+<body>
+    <h3>3DS-NDS Key Remapper</h1>
+        <script type="text/javascript" src="app.js"></script>
+        <div>
+            I. Change the controls mappings:
+            <div id="control-modes"></div>
+        </div>
+        <hr>
+
+        <div>
+            II. If needed, set the launch delay.
+            Can be as low as 10, but values lower than 400 will most likely interfere with my CPad patches:
+            <div style="margin: 10px;">
+                <input type="number" value="1000" size="5" id="launch-delay" min="10"> <small>frames (60 frames = 1 second)</small>
+            </div>
+        </div>
+        <hr>
+
+        <div>
+            III. Copy the Action Replay cheatcode
+            (<button id="copy-btn">Copy to Clipboard</button></input>)
+            <div>
+                <textarea rows="20" cols="20" id="ar-code-area"></textarea>
+            </div>
+        </div>
+        <hr>
+
+        <div>
+            IV. Insert the cheatcode into your "usrcheat.dat" file with R4CCE or another program
+        </div>
+</body>
+
+</html>
