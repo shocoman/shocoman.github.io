@@ -9,6 +9,7 @@
     <title>3DS-NDS Key Remapper</title>
 
     <style>
+        /* NDS/3DS keys in the top left corner of the table*/
         .mytd {
             padding: 25px;
             border-bottom: 2px solid black;
@@ -18,21 +19,43 @@
             background-image: -o-linear-gradient(bottom left, white 49%, black 50%, white 51%);
             background-image: linear-gradient(to top right, white 49%, black 50%, white 51%);
 
-            font-size: 0.75em;
             color: brown;
             font-weight: bold;
         }
-
         td .c1 {
-            -webkit-transform: translate(25px, -7px);
-            -ms-transform: translate(25px, -7px);
-            transform: translate(25px, -7px);
+            transform: translate(65px, -10px);
+        }
+        td .c2 {
+            transform: translate(30px, 18px);
         }
 
-        td .c2 {
-            -webkit-transform: translate(0px, 20px);
-            -ms-transform: translate(0px, 20px);
-            transform: translate(0px, 20px);
+        
+        th {
+            vertical-align: bottom;
+            text-align: right;
+        }
+
+
+        /* Highlight rows and columns on hover*/
+        table {
+            overflow: hidden;
+        }
+        tr:hover {
+            background-color: rgba(30, 193, 95, 0.6);
+        }
+        td  {
+            position: relative;
+        }
+        td:hover::after  
+        {
+            content: "";
+            position: absolute;
+            background-color: rgba(30, 193, 95, 0.5);
+            left: 0;
+            top: -5000px;
+            height: 10000px;
+            width: 100%;
+            z-index: -1;
         }
     </style>
 
@@ -48,10 +71,24 @@
         <hr>
 
         <div>
-            II. If needed, set the launch delay.
-            Can be as low as 10, but values lower than 400 will most likely interfere with my CPad patches:
-            <div style="margin: 10px;">
-                <input type="number" value="1000" size="5" id="launch-delay" min="10"> <small>frames (60 frames = 1 second)</small>
+            II. Optional Settings
+            <div style="margin: 15px; padding-top: 5px; border-top: 2px lightgray solid; max-width: 800px;">
+                <b>Start Delay</b> <br />
+                Can be as low as 10, but values lower than 400 will most likely interfere with the CPad patches if
+                you're using them.
+                On the other hand, large delays (more than 30) may cause sound distortions.
+                <div style="margin: 5px;">
+                    <input type="number" value="1000" size="5" id="launch-delay"> <small>frames (60 frames = 1
+                        second)</small>
+                </div>
+            </div>
+
+            <div style="margin: 15px; padding-top: 5px; border-top: 2px lightgray solid; max-width: 800px;">
+                <b>CStick Sensitivity</b> <br />
+                The bigger the threshold the more force you need to apply to the CStick to "press" its mapped key.
+                <div style="margin: 10px;">
+                    <small>threshold:</small> <input type="number" value="16" size="3" id="cstick-threshold">
+                </div>
             </div>
         </div>
         <hr>
@@ -66,7 +103,8 @@
         <hr>
 
         <div>
-            IV. Insert the cheatcode into your "usrcheat.dat" file with R4CCE or another program
+            IV. Insert the cheatcode into your "usrcheat.dat" file with R4CCE or another program. <br/>
+            Make sure you have <i>nds-bootstrap v70.0</i> or newer.
         </div>
 </body>
 
