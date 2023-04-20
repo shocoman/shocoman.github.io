@@ -22,14 +22,15 @@
             color: brown;
             font-weight: bold;
         }
+
         td .c1 {
             transform: translate(65px, -10px);
         }
+
         td .c2 {
             transform: translate(30px, 18px);
         }
 
-        
         th {
             vertical-align: bottom;
             text-align: right;
@@ -40,14 +41,16 @@
         table {
             overflow: hidden;
         }
-        tr:hover {
+
+        tr:not(:first-child):hover {
             background-color: rgba(30, 193, 95, 0.6);
         }
-        td  {
+
+        td {
             position: relative;
         }
-        td:hover::after  
-        {
+
+        td:hover::after {
             content: "";
             position: absolute;
             background-color: rgba(30, 193, 95, 0.5);
@@ -57,55 +60,104 @@
             width: 100%;
             z-index: -1;
         }
+
+        /* Style the buttons a bit */
+        #btn-bar button {
+            border: 2px 0 black;
+            border-radius: 5px;
+        }
+
+        #btn-bar button:first-of-type {
+            border-top-right-radius: 0px;
+            border-bottom-right-radius: 0px;
+        }
+
+        #btn-bar button:last-of-type {
+            border-top-left-radius: 0px;
+            border-bottom-left-radius: 0px;
+            /* border-left: 0px; */
+        }
+
+        /* Style the checkboxes */
+        input[type='checkbox'] {
+            transform: scale(1.25);
+        }
     </style>
 
 </head>
 
 <body>
-    <h3>3DS-NDS Key Remapper</h1>
-        <script type="text/javascript" src="app.js"></script>
-        <div>
-            I. Change the controls mappings:
-            <div id="control-modes"></div>
+    <h2>3DS-NDS Key Remapper</h2>
+    <script type="text/javascript" src="app.js"></script>
+    <div>
+        I. Change the controls mappings in the table
+        <div id="btn-bar">
+            <button id="reset-table-btn">Reset Table to Default</button>
+            <button id="unmap-cpad-btn">Unmap CPad from DPad</button>
         </div>
-        <hr>
 
-        <div>
-            II. Optional Settings
-            <div style="margin: 15px; padding-top: 5px; border-top: 2px lightgray solid; max-width: 800px;">
-                <b>Start Delay</b> <br />
-                Can be as low as 10, but values lower than 400 will most likely interfere with the CPad patches if
-                you're using them.
-                On the other hand, large delays (more than 30) may cause sound distortions.
-                <div style="margin: 5px;">
-                    <input type="number" value="1000" size="5" id="launch-delay"> <small>frames (60 frames = 1
-                        second)</small>
-                </div>
-            </div>
+    </div>
 
-            <div style="margin: 15px; padding-top: 5px; border-top: 2px lightgray solid; max-width: 800px;">
-                <b>CStick Sensitivity</b> <br />
-                The bigger the threshold the more force you need to apply to the CStick to "press" its mapped key.
-                <div style="margin: 10px;">
-                    <small>threshold:</small> <input type="number" value="16" size="3" id="cstick-threshold">
-                </div>
-            </div>
-        </div>
-        <hr>
+    <div style="margin: 15px; padding-top: 5px;" id="control-modes">
+        <!-- filled at runtime -->
+    </div>
 
-        <div>
-            III. Copy the Action Replay cheatcode
-            (<button id="copy-btn">Copy to Clipboard</button></input>)
-            <div>
-                <textarea rows="20" cols="20" id="ar-code-area"></textarea>
+    <hr>
+
+    <div>
+        II. Optional Settings
+        <div style="margin: 15px; padding-top: 5px; border-top: 2px lightgray solid; max-width: 810px;">
+            <b>Start Delay</b> <br />
+            The delay after which this remapper will be applied.
+            Can be as low as 10, but values lower than 400 will most likely interfere with the CPad patches if
+            you're using them.
+            On the other hand, large delays (more than 30) may cause music distortions (slight crackling and
+            popping)
+            when Headphones or Surround sound modes are turned on (in your game's settings).
+            <div style="margin: 5px;">
+                <input type="number" value="1000" size="5" id="launch-delay" placeholder="1000">
+                <small>frames (60 frames = 1 second)</small>
             </div>
         </div>
-        <hr>
 
-        <div>
-            IV. Insert the cheatcode into your "usrcheat.dat" file with R4CCE or another program. <br/>
-            Make sure you have <i>nds-bootstrap v70.0</i> or newer.
+        <div style="margin: 15px; padding-top: 5px; border-top: 2px lightgray solid; max-width: 810px;">
+            <b>Bit Transfer Delay</b> <br />
+            The delay between each bit sent via RTCom (1 byte = 8 bits, this remapper's size is about 1KB).
+            Can be as low as 0, but values lower than 6 can occasionally (like with 3% chance)
+            crash your console when you're starting a game. Making this number smaller or larger can solve the sound
+            distortion problem (there should be more than one "correct" value).
+            <div style="margin: 5px;">
+                <input type="number" value="9" size="3" id="bit-transfer-delay" placeholder="9"> <small> (1 bit
+                    delay is
+                    roughly equal
+                    to "0.3us" which is "0.0000003" in seconds)</small>
+            </div>
         </div>
+
+        <div style="margin: 15px; padding-top: 5px; border-top: 2px lightgray solid; max-width: 810px;">
+            <b>CStick Sensitivity</b> <br />
+            The bigger the threshold the more force you need to apply to the CStick to "press" its mapped key.
+            <div style="margin: 10px;">
+                <small>threshold:</small> <input type="number" value="16" size="3" id="cstick-threshold"
+                    placeholder="16">
+            </div>
+        </div>
+    </div>
+    <hr>
+
+    <div>
+        III. Copy the Action Replay cheatcode
+        (<button id="copy-btn">Copy to Clipboard</button></input>)
+        <div style="margin-left: 15px;">
+            <textarea rows="20" cols="20" id="ar-code-area"></textarea>
+        </div>
+    </div>
+    <hr>
+
+    <div>
+        IV. Insert the cheatcode into your "usrcheat.dat" file with R4CCE or another program. <br />
+        Make sure you have <i>nds-bootstrap v70.0</i> or newer.
+    </div>
 </body>
 
 </html>
