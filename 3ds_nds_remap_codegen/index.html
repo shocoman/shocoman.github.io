@@ -50,15 +50,18 @@
             position: relative;
         }
 
-        td:hover::after {
+        td::after {
             content: "";
             position: absolute;
-            background-color: rgba(30, 193, 95, 0.5);
             left: 0;
             top: -5000px;
             height: 10000px;
             width: 100%;
             z-index: -1;
+        }
+
+        td:hover::after {
+            background-color: rgba(30, 193, 95, 0.5);
         }
 
         /* Style the buttons a bit */
@@ -67,20 +70,13 @@
             border-radius: 5px;
         }
 
-        #btn-bar button:first-of-type {
-            border-top-right-radius: 0px;
-            border-bottom-right-radius: 0px;
-        }
-
-        #btn-bar button:last-of-type {
-            border-top-left-radius: 0px;
-            border-bottom-left-radius: 0px;
-            /* border-left: 0px; */
+        #copy-config-url:active::before {
+            content: "✅ ";
         }
 
         /* Style the checkboxes */
         input[type='checkbox'] {
-            transform: scale(1.25);
+            transform: scale(1.33);
         }
     </style>
 
@@ -93,7 +89,8 @@
         I. Change the controls mappings in the table
         <div id="btn-bar">
             <button id="reset-table-btn">Reset Table to Default</button>
-            <button id="unmap-cpad-btn">Unmap CPad from DPad</button>
+            <button id="unmap-cpad-btn"> <!-- Unmap CPad from DPad (named at runtime) --> </button>
+            <button id="copy-config-url">Copy Table to Clipboard (as a link)</button>
         </div>
 
     </div>
@@ -113,7 +110,7 @@
             you're using them.
             On the other hand, large delays (more than 30) may cause music distortions (slight crackling and
             popping)
-            when Headphones or Surround sound modes are turned on (in your game's settings).
+            when Headphones or Surround sound modes are turned on (in the game's settings).
             <div style="margin: 5px;">
                 <input type="number" value="1000" size="5" id="launch-delay" placeholder="1000">
                 <small>frames (60 frames = 1 second)</small>
@@ -125,7 +122,7 @@
             The delay between each bit sent via RTCom (1 byte = 8 bits, this remapper's size is about 1KB).
             Can be as low as 0, but values lower than 6 can occasionally (like with 3% chance)
             crash your console when you're starting a game. Making this number smaller or larger can solve the sound
-            distortion problem (there should be more than one "correct" value).
+            distortion problem.
             <div style="margin: 5px;">
                 <input type="number" value="9" size="3" id="bit-transfer-delay" placeholder="9"> <small> (1 bit
                     delay is

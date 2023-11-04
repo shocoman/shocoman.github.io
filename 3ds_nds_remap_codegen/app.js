@@ -307,11 +307,43 @@ function updateCStickThreshold(val) {
   regenerateActionReplayCheatcode();
 }
 
+function keyNameToQueryKey(s) {
+  // "CStick Right (New3DS)" => "cstick_right"
+  return s.split("(")[0].trim().toLowerCase().replace(" ", "_");
+}
+
+function loadTableConfigFromUrl(table) {
+  // load table configs from the url when available
+  const urlParams = {};
+  new URLSearchParams(window.location.search).forEach((value, key) => {
+    urlParams[key.toLowerCase()] = value;
+  });
+
+  for (let [i, keyName] of keyNames3DS.entries()) {
+    const key = keyNameToQueryKey(keyName);
+    if (urlParams.hasOwnProperty(key))
+      table[i] = parseInt(urlParams[key], 16);
+  }
+}
+
+function saveTableConfigAsUrl(table) {
+  const newUrlQuery = new URLSearchParams();
+  for (let [i, keyName] of keyNames3DS.entries())
+      newUrlQuery.set(keyNameToQueryKey(keyName), table[i].toString(16));
+
+  const currentUrl = new URL(window.location);
+  currentUrl.search = newUrlQuery.toString();
+  copyTextToClipboard(currentUrl.toString());
+}
+
+
+
 window.onload = function () {
   fillTableWithDefaultValues(currentControlsTable);
 
   const controlsTableElem = generateTable(keyNames3DS, keyNamesNDS);
-  refreshTable(controlsTableElem, defaultControlsTable);
+  loadTableConfigFromUrl(currentControlsTable);
+  refreshTable(controlsTableElem, currentControlsTable);
 
   // set up "reset table to default" button
   const resetToDefaultBtnElem = document.getElementById("reset-table-btn");
@@ -327,6 +359,12 @@ window.onload = function () {
     const currVals = currentControlsTable;
     mapOrUnmapCpadFromDpad(currVals);
     refreshTable(controlsTableElem, currVals);
+  });
+
+  // set up "Copy Table as URL" button
+  const copyTableBtnElem = document.getElementById("copy-config-url");
+  copyTableBtnElem.addEventListener("click", (e) => {
+    saveTableConfigAsUrl(currentControlsTable);
   });
 
   const controlModesDiv = document.getElementById("control-modes");
